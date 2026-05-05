@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-sans: "Roboto Mono", system-ui, sans-serif;
+  --font-mono: "Unbounded", system-ui, sans-serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-mono;
+  }
+
+  p {
+    @apply font-sans;
+  }
+}
+
