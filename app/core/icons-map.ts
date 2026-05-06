@@ -1,4 +1,7 @@
 export const icons = {
+  // App logo
+  appLogo: "ph:bounding-box-duotone",
+
   // Navigation & General
   arrowDown: "i-ph-arrow-down",
   arrowLeft: "i-ph-arrow-left",

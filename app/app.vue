@@ -69,7 +69,7 @@ import { icons } from "./core/icons-map";
 const api = useApi();
 
 const { data, status, error, refresh } = await useAsyncData("system-status", () =>
-  api.system.status()
+  api.system.getStatus()
 );
 
 const formatUptime = (seconds: number) => {

@@ -6,6 +6,10 @@
   --font-mono: "Unbounded", system-ui, sans-serif;
 }
 
+:root {
+  --ui-radius: 0.125rem;
+}
+
 @layer base {
   h1,
   h2,
@@ -20,4 +24,3 @@
     @apply font-sans;
   }
 }
-
