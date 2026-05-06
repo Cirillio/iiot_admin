@@ -11,6 +11,9 @@ export const icons = {
   chevronLeft: "i-ph-caret-left",
   chevronRight: "i-ph-caret-right",
   chevronUp: "i-ph-caret-up",
+  chevronUpDown: "ph:caret-up-down",
+  wider: "ph:arrow-line-right",
+  narrower: "ph:arrow-line-left",
   home: "i-ph-house",
   menu: "i-ph-list",
   search: "i-ph-magnifying-glass",
@@ -47,6 +50,7 @@ export const icons = {
   activity: "i-ph-activity",
   gauge: "i-ph-gauge",
   timer: "i-ph-timer",
+  branch: "ph:git-branch",
 
   // Status & Alerts
   info: "i-ph-info",
