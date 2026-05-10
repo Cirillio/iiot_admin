@@ -27,7 +27,7 @@
           <span class="text-lg leading-tight font-medium">{{ user.name }}</span>
         </div>
         <UAvatar :src="user.avatar" class="size-10 ml-2" />
-        <Icon :name="icons.chevronUpDown" class="size-6 text-default/50" />
+        <Icon :name="chevronUpDownIcon" class="size-6 text-default/50" />
       </button>
 
       <template #content>
@@ -42,7 +42,7 @@
             label="Profile"
             variant="ghost"
             color="neutral"
-            :icon="icons.user"
+            :icon="userIcon"
           />
 
           <USeparator class="my-1" />
@@ -53,7 +53,7 @@
             label="Logout"
             variant="ghost"
             color="error"
-            :trailing-icon="icons.arrowRight"
+            :trailing-icon="arrowRightIcon"
           />
         </div>
       </template>
@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { icons } from "~/core/icons-map";
+import { chevronUpDownIcon, userIcon, arrowRightIcon } from "~/core/icons-map";
 import type { MOCK_USER } from "~/mock";
 
 type Props = {

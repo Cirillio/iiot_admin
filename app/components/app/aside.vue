@@ -76,7 +76,7 @@
           <u-button
             variant="ghost"
             to="/settings"
-            :icon="icons.settings"
+            :icon="settingsIcon"
             :ui="{
               base: '*:size-6',
             }"
@@ -94,7 +94,7 @@
         <u-button
           variant="ghost"
           to="/settings"
-          :icon="icons.settings"
+          :icon="settingsIcon"
           label="Settings"
           :ui="{
             leadingIcon: 'size-6',
@@ -108,7 +108,14 @@
 
 <script lang="ts" setup>
 import type { ButtonProps } from "@nuxt/ui";
-import { icons } from "~/core/icons-map";
+import {
+  appLogoIcon,
+  devicesIcon,
+  fileIcon,
+  sensorIcon,
+  settingsIcon,
+  systemIcon,
+} from "~/core/icons-map";
 
 const { isFluid } = useLayout();
 
@@ -121,34 +128,32 @@ const asideNavItems: {
   {
     label: "Dashboard",
     to: "/",
-    icon: icons.appLogo,
+    icon: appLogoIcon,
     color: "primary",
   },
   {
     label: "Devices",
     to: "/devices",
-    icon: icons.devices,
+    icon: devicesIcon,
     color: "secondary",
   },
   {
     label: "Sensors",
     to: "/sensors",
-    icon: icons.sensor,
+    icon: sensorIcon,
     color: "secondary",
   },
   {
-    label: "System Status",
-    to: "/system-status",
-    icon: icons.system,
+    label: "Systems Status",
+    to: "/systems-status",
+    icon: systemIcon,
     color: "neutral",
   },
   {
     label: "Logs",
     to: "/logs",
-    icon: icons.file,
+    icon: fileIcon,
     color: "neutral",
   },
 ];
 </script>
-
-<style></style>

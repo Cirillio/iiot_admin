@@ -1,5 +1,3 @@
-import { icons } from "./core/icons-map";
-
 export default defineAppConfig({
   ui: {
     colors: {
@@ -17,7 +15,5 @@ export default defineAppConfig({
         base: "cursor-pointer",
       },
     },
-
-    icons,
   },
 });

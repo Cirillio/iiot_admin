@@ -2,6 +2,7 @@
 <template>
   <UTooltip
     v-bind="$attrs"
+    
     :ui="{
       text: `font-mono text-secondary ${sizeClass}`,
       content: 'bg-elevated',
@@ -15,9 +16,15 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
-}>();
+import type { TooltipProps, TooltipEmits } from "@nuxt/ui";
+
+defineEmits<TooltipEmits>();
+
+const props = defineProps<
+  TooltipProps & {
+    size?: "xs" | "sm" | "md" | "lg" | "xl";
+  }
+>();
 
 const sizeMap = {
   xs: "text-xs",

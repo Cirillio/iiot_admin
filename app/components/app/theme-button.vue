@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { icons } from "~/core/icons-map";
+import { lightIcon, darkIcon, systemIcon } from "~/core/icons-map";
 
 const colorMode = useColorMode();
 
@@ -15,9 +15,9 @@ const toggleMode = () => {
 
 const currentIcon = computed((): string => {
   const pref = colorMode.preference;
-  if (pref === "light") return icons.light;
-  if (pref === "dark") return icons.dark;
-  return icons.system;
+  if (pref === "light") return lightIcon;
+  if (pref === "dark") return darkIcon;
+  return systemIcon;
 });
 
 const ariaLabel = computed(

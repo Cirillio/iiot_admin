@@ -3,7 +3,7 @@
     class="border-b border-default flex w-full py-2 px-6 items-center justify-between"
   >
     <div class="flex items-center gap-2">
-      <Icon :name="icons.appLogo" class="text-primary size-6" />
+      <Icon :name="appLogoIcon" class="text-primary size-6" />
       <span class="font-mono font-medium text-lg">IIoT System</span>
     </div>
     <div class="flex gap-2">
@@ -12,15 +12,17 @@
         :content="{ align: 'end' }"
         :delay-duration="150"
       >
-        <UButton :icon="icons.search" variant="soft" color="neutral" />
+        <UButton :icon="searchIcon" variant="soft" color="neutral" />
       </CustomTooltip>
 
       <CustomTooltip
         text="Notifications"
-        :content="{ align: 'end' }"
+        :content="{
+          align: 'end',
+        }"
         :delay-duration="150"
       >
-        <UButton :icon="icons.notification" variant="soft" color="neutral" />
+        <UButton :icon="notificationIcon" variant="soft" color="neutral" />
       </CustomTooltip>
 
       <CustomTooltip
@@ -29,7 +31,7 @@
         :delay-duration="150"
       >
         <UButton
-          :icon="isFluid ? icons.narrower : icons.wider"
+          :icon="isFluid ? narrowerIcon : widerIcon"
           variant="soft"
           color="neutral"
           @click="toggleWidth"
@@ -40,7 +42,13 @@
 </template>
 
 <script lang="ts" setup>
-import { icons } from "~/core/icons-map";
+import {
+  appLogoIcon,
+  narrowerIcon,
+  notificationIcon,
+  searchIcon,
+  widerIcon,
+} from "~/core/icons-map";
 
 const { isFluid, toggleWidth } = useLayout();
 </script>

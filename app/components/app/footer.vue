@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { icons } from "~/core/icons-map";
+import { branchIcon } from "~/core/icons-map";
 
 const version = "v1.4.2-build.89";
 const env = "Development";
@@ -33,7 +33,7 @@ const currentYear = new Date().getFullYear();
 
     <div class="flex items-center gap-4 text-xs text-default/60">
       <div class="flex items-center gap-1">
-        <UIcon :name="icons.branch" class="size-4" />
+        <UIcon :name="branchIcon" class="size-4" />
         <span>{{ version }}</span>
       </div>
 
