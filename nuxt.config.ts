@@ -2,7 +2,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
 
   // Убираем devtools пока не заведемся
-  devtools: { enabled: false },
+  devtools: { enabled: true },
 
   modules: [
     "@nuxt/eslint",
