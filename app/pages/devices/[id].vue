@@ -65,7 +65,7 @@ definePageMeta({
         Connected Sensors ({{ sensors.length }})
       </h2>
 
-      <div class="flex-1 overflow-y-auto h-full">
+      <ScrollableWrapper>
         <div class="grid gap-4" :class="[isFluid || 'grid-cols-2']">
           <DevicesSensorCard
             v-for="sensor in sensors"
@@ -74,7 +74,7 @@ definePageMeta({
             :optimize="!isFluid"
           />
         </div>
-      </div>
+      </ScrollableWrapper>
     </div>
   </div>
 </template>

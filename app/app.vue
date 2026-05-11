@@ -1,3 +1,15 @@
+<script setup lang="ts">
+const { connect, disconnect, autoconnect } = useSignalR();
+
+onMounted(() => {
+  if (autoconnect.value) connect();
+});
+
+onUnmounted(() => {
+  disconnect();
+});
+</script>
+
 <template>
   <UApp>
     <div class="size-full">

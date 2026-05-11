@@ -6,6 +6,7 @@ export default defineNuxtConfig({
 
   modules: [
     "@nuxt/eslint",
+    "nuxt-charts",
     "@nuxt/image",
     "@pinia/nuxt",
     "@vueuse/nuxt",
