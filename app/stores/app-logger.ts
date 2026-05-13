@@ -9,7 +9,7 @@ export interface LogItem {
   message: string;
 }
 
-const MAX_LOGS = 200;
+const MAX_LOGS = 500;
 
 export const useAppLoggerStore = defineStore("AppLogger", () => {
   const logs = ref<LogItem[]>([]);
@@ -29,9 +29,9 @@ export const useAppLoggerStore = defineStore("AppLogger", () => {
   return {
     logs,
     log: {
-      error:   (tag: string, message: string) => push(tag, "error",   message),
+      error: (tag: string, message: string) => push(tag, "error", message),
       warning: (tag: string, message: string) => push(tag, "warning", message),
-      info:    (tag: string, message: string) => push(tag, "info",    message),
+      info: (tag: string, message: string) => push(tag, "info", message),
       general: (tag: string, message: string) => push(tag, "general", message),
     },
     clear,

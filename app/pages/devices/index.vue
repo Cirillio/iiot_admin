@@ -18,26 +18,26 @@ const { data, error, pending, refresh } = await useAsyncData(
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4 overflow-hidden">
-    <div class="flex gap-4 shrink-0">
-      <UButton
-        variant="outline"
-        label="refresh"
-        size="xl"
-        :loading="pending"
-        @click="refresh()"
-      />
+  <div class="flex h-full flex-col overflow-hidden">
+    <div class="flex gap-4 border-b p-4 border-default shrink-0">
       <UBadge
         color="info"
-        size="xl"
         :label="'Device count: ' + data?.length"
-        variant="soft"
+        variant="outline"
+        size="lg"
+      />
+      <UButton
+        variant="subtle"
+        label="refresh"
+        color="neutral"
+        :loading="pending"
+        @click="refresh()"
       />
     </div>
 
     <div class="flex-1 min-h-0 overflow-y-auto">
       <div
-        class="grid gap-2 content-start"
+        class="grid gap-2 p-4 content-start"
         :class="[!isFluid ? 'grid-cols-3' : 'grid-cols-5']"
       >
         <DevicesListCard

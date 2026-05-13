@@ -15,5 +15,10 @@ export default defineAppConfig({
         base: "cursor-pointer",
       },
     },
+    toaster: {
+      defaultVariants: {
+        position: "top-center",
+      },
+    },
   },
 });

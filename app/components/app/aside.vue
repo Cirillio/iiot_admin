@@ -84,13 +84,6 @@
         </custom-tooltip>
       </template>
       <template v-else>
-        <app-theme-button
-          :ui="{
-            leadingIcon: 'size-6',
-            base: 'text-sm',
-          }"
-          label="Change Theme"
-        />
         <u-button
           variant="ghost"
           to="/settings"

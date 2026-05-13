@@ -10,6 +10,8 @@
   --ui-radius: 0.125rem;
 }
 
+@source inline("{bg-{neutral,amber,rose,sky}-500/{10},ring-{neutral,amber,rose,sky}-500/{50},text-{neutral,amber,rose,sky}-{400,500}}");
+
 @layer base {
   html,
   body {

@@ -33,9 +33,7 @@
         class="flex max-lg:ml-auto gap-2 items-center rounded-md hover:bg-elevated pl-4 pr-2 py-2.5"
       >
         <div class="text-end flex flex-col justify-between">
-          <span class="leading-tight text-secondary text-xs">{{
-            user.role
-          }}</span>
+          <span class="leading-tight text-secondary text-xs">{{ user.role }}</span>
           <span class="text-lg leading-tight font-medium">{{ user.name }}</span>
         </div>
         <UAvatar :src="user.avatar" class="size-10 ml-2" />
@@ -44,29 +42,11 @@
 
       <template #content>
         <div class="grid py-1 font-mono">
-          <span class="text-sm uppercase text-center text-default/75"
-            >Menu</span
-          >
+          <span class="text-sm uppercase text-center text-default/75">Menu</span>
           <USeparator class="my-1" />
-          <UButton
-            to="/profile"
-            size="lg"
-            label="Profile"
-            variant="ghost"
-            color="neutral"
-            :icon="userIcon"
-          />
-
+          <UButton to="/profile" size="lg" label="Profile" variant="ghost" color="neutral" :icon="userIcon" />
           <USeparator class="my-1" />
-
-          <UButton
-            to="/logout"
-            size="lg"
-            label="Logout"
-            variant="ghost"
-            color="error"
-            :trailing-icon="arrowRightIcon"
-          />
+          <UButton to="/logout" size="lg" label="Logout" variant="ghost" color="error" :trailing-icon="arrowRightIcon" />
         </div>
       </template>
     </UPopover>
@@ -87,9 +67,7 @@ const route = useRoute();
 
 const isIndex = computed(() => route.path === "/");
 const pageTitle = computed(() => route.meta.title || "Dashboard");
-const pageDescription = computed(
-  () => route.meta.description || "IIoT System Monitoring",
-);
+const pageDescription = computed(() => route.meta.description || "IIoT System Monitoring");
 
 const greeting = computed(() => {
   const hour = new Date().getHours();

@@ -1,11 +1,15 @@
 import * as signalR from "@microsoft/signalr";
+import type { AlertLevel } from "~/types/api";
 
 let connection: signalR.HubConnection | null = null;
+
+const metricsHub = "hubs/metrics";
 
 export const useSignalR = () => {
   const config = useRuntimeConfig();
   const store = useRealTimeStore();
   const appLogger = useAppLoggerStore();
+  const notifications = useNotificationsStore();
 
   const autoconnect = useLocalStorage("iiot-signalr-autoconnect", false);
 
@@ -20,7 +24,7 @@ export const useSignalR = () => {
     }
 
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${config.public.apiBase}/hubs/metrics`)
+      .withUrl(`${config.public.apiBase}/${metricsHub}`)
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();
@@ -41,6 +45,7 @@ export const useSignalR = () => {
         "signalr-alert",
         `System Alert (${level}): ${message}`,
       );
+      useNotificationsStore().add("System Alert", message, level as AlertLevel);
     });
 
     connection.onreconnecting(() => {
@@ -59,16 +64,24 @@ export const useSignalR = () => {
     try {
       await connection.start();
       store.isConnected = true;
+      notifications.add("SignalR", `Connected to ${metricsHub}`, "INFO");
+
       appLogger.log.info("signalr-status", "SignalR Connected");
     } catch (e) {
       store.isConnected = false;
       appLogger.log.error("signalr-error", `Connection failed: ${e}`);
+      useNotificationsStore().add(
+        "Connection Failed",
+        `SignalR: ${e}`,
+        "CRITICAL",
+      );
     }
   };
   const disconnect = async () => {
     await connection?.stop();
     connection = null;
     appLogger.log.error("signalr-status", "SignalR Disconnected");
+    notifications.add("SignalR", "Disconnected", "CRITICAL");
   };
 
   return {

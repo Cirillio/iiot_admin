@@ -17,7 +17,7 @@ const toggleShowValues = () => {
 <template>
   <NuxtLink
     :to="'/sensors/' + item.sensorId"
-    class="group bg-muted/50 h-fit relative overflow-hidden rounded-lg p-4 hover:bg-muted transition-colors flex items-center gap-4"
+    class="group border border-default hover:border-emerald-300/50 duration-75 ease-out h-fit relative overflow-hidden rounded-lg p-4 transition-colors flex items-center gap-4"
     :class="[!optimize ? 'items-center' : 'items-start flex-col']"
   >
     <UIcon
@@ -42,7 +42,8 @@ const toggleShowValues = () => {
         :class="[!optimize || 'flex-col items-start']"
       >
         <span
-          class="text-xl font-mono font-bold truncate group-hover:text-amber-300 transition-colors"
+          :title="item.name || ''"
+          class="text-xl font-mono font-bold truncate transition-colors"
         >
           {{ item.name || "Unnamed Sensor" }}
         </span>

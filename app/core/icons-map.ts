@@ -42,6 +42,7 @@ const icons = {
   batteryIcon: "ph:battery-charging",
   signalIcon: "ph:broadcast",
   doorIcon: "ph:door",
+  binaryIcon: "ph:binary",
 
   // Monitoring & Analytics
   dashboardIcon: "ph:layout",
@@ -131,6 +132,7 @@ export const {
   batteryIcon,
   signalIcon,
   doorIcon,
+  binaryIcon,
   dashboardIcon,
   chartIcon,
   barChartIcon,

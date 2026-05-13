@@ -17,7 +17,7 @@ defineProps<Props>();
 <template>
   <NuxtLink
     :to="'/devices/' + item.id"
-    class="rounded-md bg-muted/50 overflow-hidden relative hover:bg-muted/75 transition p-2 flex gap-4 flex-col"
+    class="rounded-md border border-default hover:border-emerald-300/50 overflow-hidden duration-75 ease-out relative transition p-2 flex gap-4 flex-col"
   >
     <div
       class="absolute -top-4 right-2 bg-accented/50 aspect-square flex rounded-md p-1"
@@ -36,7 +36,7 @@ defineProps<Props>();
         >{{ item.ipAddress }}:{{ item.port }}</span
       >
       <span
-        class="text-xl w-fit hover:text-amber-300/75 transition text-amber-300 font-semibold font-mono"
+        class="text-xl line-clamp-2 w-fit transition text-emerald-500 font-semibold font-mono"
         >{{ item.name }}</span
       >
     </div>
@@ -46,7 +46,7 @@ defineProps<Props>();
         v-for="sensor in item.sensors?.slice(0, 3)"
         :key="sensor.sensorId + '_in_devicelistcard'"
         :leading-icon="sensorIcon"
-        variant="subtle"
+        variant="soft"
         color="neutral"
         size="lg"
         :to="'/sensors/' + sensor.sensorId"
@@ -54,13 +54,13 @@ defineProps<Props>();
           leadingIcon: 'text-emerald-300/75',
         }"
       >
-        <span class="flex justify-between items-center w-full">
-          <span class="truncate">
+        <span class="flex flex-col w-full">
+          <span class="truncate leading-tight">
             {{ sensor.name || "unnamed-sensor" }}
           </span>
-          <span class="text-secondary/75 text-base">{{
-            sensor.portNumber
-          }}</span>
+          <span class="text-default/50 leading-tight text-xs font-light"
+            >port: {{ sensor.portNumber }}</span
+          >
         </span>
       </UButton>
     </div>
