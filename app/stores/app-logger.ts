@@ -9,7 +9,7 @@ export interface LogItem {
   message: string;
 }
 
-const MAX_LOGS = 500;
+export const MAX_LOGS = 500;
 
 export const useAppLoggerStore = defineStore("AppLogger", () => {
   const logs = ref<LogItem[]>([]);

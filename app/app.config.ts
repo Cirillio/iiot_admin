@@ -3,6 +3,7 @@ export default defineAppConfig({
     colors: {
       primary: "red",
       neutral: "mist",
+      tertiary: "emerald",
     },
     popover: {
       slots: {

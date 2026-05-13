@@ -1,22 +1,66 @@
 <script setup lang="ts">
-const { connect, disconnect, autoconnect } = useSignalR();
-
-onMounted(() => {
-  if (autoconnect.value) connect();
-});
-
-onUnmounted(() => {
-  disconnect();
-});
+const { isFluid } = useLayout();
+const route = useRoute();
 </script>
 
 <template>
   <UApp>
-    <div class="size-full">
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
-    </div>
+    <u-container
+      :class="[
+        'mx-auto w-full overflow-y-hidden h-dvh',
+        isFluid ? 'max-w-none' : 'max-w-5xl',
+      ]"
+    >
+      <div class="border-x bg-default/85 h-full flex flex-col border-accented">
+        <app-toolbar />
+        <NuxtLayout>
+          <NuxtErrorBoundary>
+            <NuxtPage />
+
+            <template #error="{ error, clearError }">
+              <div
+                class="size-full flex flex-col items-center justify-center p-10 text-center gap-6"
+              >
+                <!-- Авто-сброс при смене маршрута -->
+                <div
+                  v-if="
+                    watch(
+                      () => route.path,
+                      () => clearError(),
+                      {
+                        immediate: true,
+                        deep: true,
+                      },
+                    )
+                  "
+                />
+
+                <div class="space-y-2">
+                  <h1 class="text-4xl font-bold font-mono text-primary">
+                    {{ error?.statusCode || "ERROR" }}
+                  </h1>
+                  <p class="text-muted text-lg max-w-md">
+                    {{
+                      error?.message || "Что-то пошло не так в модуле страницы."
+                    }}
+                  </p>
+                </div>
+
+                <UButton
+                  label="Try Again"
+                  color="primary"
+                  variant="subtle"
+                  icon="i-lucide-refresh-cw"
+                  size="xl"
+                  @click="clearError"
+                />
+              </div>
+            </template>
+          </NuxtErrorBoundary>
+        </NuxtLayout>
+        <app-footer />
+      </div>
+    </u-container>
   </UApp>
 </template>
 

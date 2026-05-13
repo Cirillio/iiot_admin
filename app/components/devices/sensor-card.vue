@@ -17,20 +17,20 @@ const toggleShowValues = () => {
 <template>
   <NuxtLink
     :to="'/sensors/' + item.sensorId"
-    class="group border border-default hover:border-emerald-300/50 duration-75 ease-out h-fit relative overflow-hidden rounded-lg p-4 transition-colors flex items-center gap-4"
+    class="group border border-default hover:border-tertiary/50 duration-75 ease-out h-fit relative overflow-hidden rounded-lg p-4 transition-colors flex items-center gap-4"
     :class="[!optimize ? 'items-center' : 'items-start flex-col']"
   >
     <UIcon
       v-if="optimize"
       :name="sensorIcon"
-      class="text-emerald-300/75 size-16 absolute -top-4 -right-2 animate-pulse"
+      class="text-tertiary/75 size-16 absolute -top-4 -right-2 animate-pulse"
     />
     <UBadge
       variant="outline"
       color="neutral"
       class="flex-col aspect-square! w-fit min-w-0 min-h-0 gap-0"
     >
-      <span class="text-base font-bold font-mono text-emerald-300">{{
+      <span class="text-base font-bold font-mono text-tertiary">{{
         item.portNumber
       }}</span>
       <span class="text-xs uppercase text-muted leading-none">Port</span>
@@ -70,7 +70,7 @@ const toggleShowValues = () => {
       <div class="flex items-center gap-3 mt-1">
         <div class="flex items-center gap-1">
           <span class="text-base text-muted uppercase">Unit:</span>
-          <span class="text-sm font-mono text-emerald-400/80">{{
+          <span class="text-sm font-mono text-tertiary/80">{{
             item.unit || "—"
           }}</span>
         </div>

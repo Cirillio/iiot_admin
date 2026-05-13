@@ -2,7 +2,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
 
   // Убираем devtools пока не заведемся
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   modules: [
     "@nuxt/eslint",
@@ -29,6 +29,7 @@ export default defineNuxtConfig({
   routeRules: {
     "/**": {
       ssr: false,
+  
     },
   },
 

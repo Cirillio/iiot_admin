@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Roboto Mono", system-ui, sans-serif;
   --font-mono: "Unbounded", system-ui, sans-serif;
+  --color-tertiary: var(--color-emerald-400);
 }
 
 :root {

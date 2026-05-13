@@ -17,7 +17,7 @@ defineProps<Props>();
 <template>
   <NuxtLink
     :to="'/devices/' + item.id"
-    class="rounded-md border border-default hover:border-emerald-300/50 overflow-hidden duration-75 ease-out relative transition p-2 flex gap-4 flex-col"
+    class="rounded-md border border-default hover:border-tertiary/50 overflow-hidden duration-75 ease-out relative transition p-2 flex gap-4 flex-col"
   >
     <div
       class="absolute -top-4 right-2 bg-accented/50 aspect-square flex rounded-md p-1"
@@ -26,7 +26,7 @@ defineProps<Props>();
         :name="deviceIcon"
         class="size-9"
         :class="
-          item.isActive ? 'text-emerald-300/75 animate-pulse' : 'text-muted'
+          item.isActive ? 'text-tertiary/75 animate-pulse' : 'text-muted'
         "
       />
     </div>
@@ -36,7 +36,7 @@ defineProps<Props>();
         >{{ item.ipAddress }}:{{ item.port }}</span
       >
       <span
-        class="text-xl line-clamp-2 w-fit transition text-emerald-500 font-semibold font-mono"
+        class="text-xl line-clamp-2 w-fit transition text-tertiary font-semibold font-mono"
         >{{ item.name }}</span
       >
     </div>
@@ -51,7 +51,7 @@ defineProps<Props>();
         size="lg"
         :to="'/sensors/' + sensor.sensorId"
         :ui="{
-          leadingIcon: 'text-emerald-300/75',
+          leadingIcon: 'text-tertiary/75',
         }"
       >
         <span class="flex flex-col w-full">

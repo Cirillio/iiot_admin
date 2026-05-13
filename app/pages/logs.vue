@@ -13,7 +13,9 @@ const search = ref("");
 const activeStatuses = ref<Set<LogStatusType>>(new Set());
 const activeTags = ref<Set<string>>(new Set());
 
-const uniqueTags = computed(() => [...new Set(logs.value.map((l) => l.tag))].sort());
+const uniqueTags = computed(() =>
+  [...new Set(logs.value.map((l) => l.tag))].sort(),
+);
 
 const filteredLogs = computed(() => {
   let result = [...logs.value].toReversed();
@@ -27,7 +29,8 @@ const filteredLogs = computed(() => {
   if (search.value.trim()) {
     const q = search.value.trim().toLowerCase();
     result = result.filter(
-      (l) => l.message.toLowerCase().includes(q) || l.tag.toLowerCase().includes(q)
+      (l) =>
+        l.message.toLowerCase().includes(q) || l.tag.toLowerCase().includes(q),
     );
   }
 
@@ -35,9 +38,14 @@ const filteredLogs = computed(() => {
 });
 
 const handleExport = () => {
-  const blob = new Blob([JSON.stringify(appLogger.exportLogs(), null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(appLogger.exportLogs(), null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement("a"), { href: url, download: `iiot-logs-${Date.now()}.json` });
+  const a = Object.assign(document.createElement("a"), {
+    href: url,
+    download: `iiot-logs-${Date.now()}.json`,
+  });
   a.click();
   URL.revokeObjectURL(url);
 };
@@ -54,13 +62,18 @@ const handleExport = () => {
       @export="handleExport"
     />
 
-    <div class="px-4 py-2 text-xs text-muted font-mono border-b border-default">
-      {{ filteredLogs.length }} / {{ logs.length }} entries
+    <div
+      class="px-4 py-2 text-xs text-muted font-mon text-end border-b border-default"
+    >
+      {{ logs.length }} / {{ MAX_LOGS }} entries
     </div>
 
     <ScrollableWrapper>
       <div class="flex flex-col gap-3 p-4">
-        <div v-if="filteredLogs.length === 0" class="text-center text-sm text-muted py-12">
+        <div
+          v-if="filteredLogs.length === 0"
+          class="text-center text-sm text-muted py-12"
+        >
           No logs match your filters
         </div>
         <LogsItem v-for="(log, i) in filteredLogs" :key="i" :log="log" />

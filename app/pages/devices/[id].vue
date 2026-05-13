@@ -80,7 +80,7 @@ definePageMeta({
           <span class="text-muted text-xs flex items-center gap-1">
             <UIcon :name="hashIcon" class="size-3" />
             ID:
-            <div class="text-emerald-400">
+            <div class="text-tertiary">
               {{ device?.id }}
             </div>
           </span>
@@ -89,7 +89,7 @@ definePageMeta({
             class="text-muted text-xs flex items-center gap-1"
           >
             <UIcon :name="gatewayIcon" class="size-3" />
-            <div class="text-emerald-400">
+            <div class="text-tertiary">
               {{ device?.ipAddress }}:{{ device?.port }}
             </div>
           </span>
@@ -99,7 +99,7 @@ definePageMeta({
           >
             <UIcon :name="binaryIcon" class="size-3" />
             Slave ID:
-            <div class="text-emerald-400">{{ device?.slaveId }}</div>
+            <div class="text-tertiary">{{ device?.slaveId }}</div>
           </span>
         </div>
 
@@ -111,13 +111,13 @@ definePageMeta({
           <span class="flex items-center gap-1">
             <UIcon :name="sensorIcon" class="size-3" />
             sensors:
-            <span class="text-emerald-400">
+            <span class="text-tertiary">
               {{ device?.totalSensors || sensors.length }}</span
             >
           </span>
           <span
             >added:
-            <span class="text-emerald-400">
+            <span class="text-tertiary">
               {{ formatDate(device?.createdAt) }}
             </span>
           </span>
@@ -132,7 +132,7 @@ definePageMeta({
           class="size-12"
           :class="
             device?.isActive
-              ? 'text-emerald-300/75 animate-pulse'
+              ? 'text-tertiary/75 animate-pulse'
               : 'text-muted'
           "
         />
