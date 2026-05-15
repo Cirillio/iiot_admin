@@ -1,10 +1,8 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { editIcon } from "~/core/icons-map";
-import { SENSOR_TYPE_COLOR, type SensorDataType, type SensorSettings } from "~/types/models";
+import { type SensorDataType, type SensorSettings } from "~/types/models";
 
-const props = defineProps<{
-  item: SensorSettings;
-}>();
+const props = defineProps<{ item: SensorSettings }>();
 
 const emit = defineEmits<{
   (e: "edit", sensor: SensorSettings): void;
@@ -13,79 +11,91 @@ const emit = defineEmits<{
 const rt = useRealTimeStore();
 
 const metric = computed(() =>
-  props.item.sensorId != null ? rt.getValueBySensorId(props.item.sensorId) : undefined,
+  props.item.sensorId != null ? rt.getMetricBySensorId(props.item.sensorId) : undefined,
 );
+
+const isDigital = computed(() => props.item.dataType === "DIGITAL");
 
 const displayValue = computed(() => {
   if (metric.value == null) return null;
   const v = metric.value.value;
-  return v != null ? Number(v).toFixed(2) : null;
+  if (v == null) return null;
+  if (isDigital.value) return v >= 0.5 ? "ON" : "OFF";
+  return Number(v).toFixed(2);
 });
 
-// Static map — full class strings required for Tailwind v4 scanning
-const ACCENT_CLASS: Record<SensorDataType, string> = {
-  ANALOG: "bg-info-500",
+const hasValue = computed(() => displayValue.value != null);
+
+// Full static class strings — required for Tailwind v4 scanning
+const TYPE_TOP_BAR: Record<SensorDataType, string> = {
+  ANALOG:  "bg-info-500",
   DIGITAL: "bg-success-500",
   VIRTUAL: "bg-warning-500",
 };
 
-const accentClass = computed(() =>
-  props.item.dataType ? ACCENT_CLASS[props.item.dataType] : "bg-neutral-500",
+const TYPE_VALUE_COLOR: Record<SensorDataType, string> = {
+  ANALOG:  "text-info-300",
+  DIGITAL: "text-success-300",
+  VIRTUAL: "text-warning-300",
+};
+
+const topBarClass = computed(() =>
+  props.item.dataType ? TYPE_TOP_BAR[props.item.dataType] : "bg-neutral-600",
 );
+
+const valueColorClass = computed(() => {
+  if (!hasValue.value) return "text-muted/30";
+  if (isDigital.value && displayValue.value === "OFF") return "text-muted/50";
+  return props.item.dataType ? TYPE_VALUE_COLOR[props.item.dataType] : "text-default";
+});
 </script>
 
 <template>
-  <div
-    class="group relative flex flex-col gap-2.5 rounded-lg border border-default bg-elevated/30 p-3 pl-3.5 overflow-hidden transition-colors hover:border-tertiary/40 hover:bg-elevated/60"
-  >
-    <!-- type accent bar -->
-    <div class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg" :class="accentClass" />
+  <div class="group relative flex flex-col rounded-lg border border-default bg-elevated/20 overflow-hidden transition-colors hover:border-tertiary/30 hover:bg-elevated/40">
 
-    <!-- top: name + port -->
-    <div class="flex items-start justify-between gap-2">
-      <div class="flex flex-col gap-0.5 min-w-0">
-        <span class="font-mono font-bold text-sm leading-tight truncate">
-          {{ item.name || "Unnamed" }}
+    <!-- Type accent bar -->
+    <div class="h-1 w-full shrink-0" :class="topBarClass" />
+
+    <div class="flex flex-col gap-3 p-4">
+
+      <!-- Port + Edit -->
+      <div class="flex items-center justify-between">
+        <UBadge variant="outline" color="neutral" size="xs" class="font-mono tabular-nums">
+          P{{ item.portNumber }}
+        </UBadge>
+        <UButton
+          :icon="editIcon"
+          size="xs"
+          variant="ghost"
+          color="neutral"
+          class="opacity-0 group-hover:opacity-100 transition-opacity"
+          @click="emit('edit', item)"
+        />
+      </div>
+
+      <!-- Value block -->
+      <div class="flex flex-col gap-0.5">
+        <span
+          class="text-4xl font-mono font-bold tabular-nums leading-none tracking-tight transition-colors"
+          :class="valueColorClass"
+        >
+          {{ displayValue ?? "—" }}
         </span>
-        <span v-if="item.slug" class="text-[10px] text-muted font-mono truncate leading-none">
+        <span v-if="item.unit && !isDigital" class="text-sm text-muted uppercase tracking-wider font-mono">
+          {{ item.unit }}
+        </span>
+      </div>
+
+      <!-- Sensor name + slug -->
+      <div class="flex flex-col gap-0.5 border-t border-default/50 pt-3">
+        <span class="text-sm font-semibold leading-tight">
+          {{ item.name || "Unnamed sensor" }}
+        </span>
+        <span v-if="item.slug" class="text-xs font-mono text-muted/60 truncate">
           {{ item.slug }}
         </span>
       </div>
-      <UBadge variant="outline" color="neutral" size="xs" class="shrink-0 font-mono tabular-nums">
-        P{{ item.portNumber }}
-      </UBadge>
-    </div>
 
-    <!-- value -->
-    <div class="flex items-baseline gap-1.5">
-      <span
-        class="text-2xl font-mono font-bold tabular-nums leading-none"
-        :class="displayValue != null ? 'text-default' : 'text-muted/40'"
-      >
-        {{ displayValue ?? "—" }}
-      </span>
-      <span v-if="item.unit" class="text-xs text-muted uppercase tracking-wider">
-        {{ item.unit }}
-      </span>
-    </div>
-
-    <!-- footer: id + edit -->
-    <div class="flex items-center justify-between pt-1.5 border-t border-default/40">
-      <NuxtLink
-        :to="`/sensors/${item.sensorId}`"
-        class="text-[10px] text-muted/60 font-mono hover:text-muted transition-colors"
-        @click.stop
-      >
-        #{{ item.sensorId }}
-      </NuxtLink>
-      <UButton
-        :leading-icon="editIcon"
-        size="xs"
-        variant="ghost"
-        color="neutral"
-        class="opacity-0 group-hover:opacity-100 transition-opacity"
-        @click.stop="emit('edit', item)"
-      />
     </div>
   </div>
 </template>
