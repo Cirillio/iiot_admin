@@ -1,18 +1,15 @@
 <script lang="ts" setup>
-import { saveIcon } from "~/core/icons-map";
-import type { DashboardDevice, Device, UpdateDeviceDto } from "~/types/models";
+import { plusIcon, saveIcon } from "~/core/icons-map";
+import type { CreateDeviceDto } from "~/types/models";
 
-const props = defineProps<{
-  open: boolean;
-  device: Device | DashboardDevice | null;
-}>();
+const props = defineProps<{ open: boolean }>();
 
 const emits = defineEmits<{
   (e: "update:open", value: boolean): void;
-  (e: "submit", value: UpdateDeviceDto): void;
+  (e: "submit", value: CreateDeviceDto): void;
 }>();
 
-const form = reactive<UpdateDeviceDto>({
+const form = reactive<CreateDeviceDto>({
   name: "",
   ipAddress: "",
   port: 502,
@@ -20,18 +17,15 @@ const form = reactive<UpdateDeviceDto>({
   isActive: true,
 });
 
-watch(
-  () => props.device,
-  (d) => {
-    if (!d) return;
-    form.name = d.name ?? "";
-    form.ipAddress = d.ipAddress ?? "";
-    form.port = d.port ?? 502;
-    form.slaveId = d.slaveId ?? 1;
-    form.isActive = d.isActive ?? true;
-  },
-  { immediate: true },
-);
+const reset = () => {
+  form.name = "";
+  form.ipAddress = "";
+  form.port = 502;
+  form.slaveId = 1;
+  form.isActive = true;
+};
+
+watch(() => props.open, (v) => { if (!v) reset(); });
 
 const handleSubmit = () => {
   emits("submit", { ...form });
@@ -47,16 +41,16 @@ const handleSubmit = () => {
   >
     <template #content>
       <div class="flex flex-col gap-5 p-5">
-        <div class="flex flex-col gap-0.5">
-          <span class="font-semibold text-base">Edit device</span>
-          <span class="font-mono text-xs text-muted">ID: {{ device?.id }}</span>
+        <div class="flex items-center gap-2">
+          <UIcon :name="plusIcon" class="size-4 text-muted" />
+          <span class="font-semibold text-base">New device</span>
         </div>
 
         <USeparator />
 
         <div class="grid grid-cols-2 gap-4">
           <UFormField label="Name" class="col-span-2">
-            <UInput v-model="form.name" placeholder="Device name" class="w-full" />
+            <UInput v-model="form.name" placeholder="ADAM-6017 Line A" class="w-full" />
           </UFormField>
 
           <UFormField label="IP Address" class="col-span-2">
@@ -80,13 +74,8 @@ const handleSubmit = () => {
         <USeparator />
 
         <div class="flex justify-end gap-2">
-          <UButton
-            label="Cancel"
-            color="neutral"
-            variant="ghost"
-            @click="emits('update:open', false)"
-          />
-          <UButton label="Save" :leading-icon="saveIcon" @click="handleSubmit" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="emits('update:open', false)" />
+          <UButton label="Create" :leading-icon="saveIcon" @click="handleSubmit" />
         </div>
       </div>
     </template>
