@@ -45,8 +45,8 @@ const showPagination = computed(() => devices.value.length > PAGE_SIZE);
 
     <div class="flex-1 min-h-0 overflow-y-auto">
       <div
-        class="grid gap-2 p-4 content-start"
-        :class="[!isFluid ? 'grid-cols-3' : 'grid-cols-5']"
+        class="grid gap-3 p-4 content-start"
+        :class="[!isFluid ? 'grid-cols-2' : 'grid-cols-3']"
       >
         <DevicesListCard
           v-for="device in paginated"

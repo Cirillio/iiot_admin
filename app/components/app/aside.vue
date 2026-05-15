@@ -36,7 +36,7 @@
             active-variant="solid"
             :ui="{
               leadingIcon: 'size-6',
-              base: 'text-sm',
+              base: 'text-base',
             }"
           />
         </template>
@@ -96,7 +96,7 @@
           color="neutral"
           :ui="{
             leadingIcon: 'size-6',
-            base: 'text-sm',
+            base: 'text-base',
           }"
         />
         <u-button
@@ -106,7 +106,7 @@
           color="error"
           :ui="{
             leadingIcon: 'size-6',
-            base: 'text-sm',
+            base: 'text-base',
           }"
         />
       </template>
