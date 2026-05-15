@@ -38,6 +38,11 @@ export const useSignalR = () => {
         "signalr-config",
         `Config Updated: ${entityType} ID:${entityId}`,
       );
+      if (entityType === "DEVICE") {
+        refreshNuxtData(["devices", `device-${entityId}`]);
+      } else if (entityType === "SENSOR") {
+        refreshNuxtData("sensors");
+      }
     });
 
     connection.on("SystemAlert", (message: string, level: string) => {
