@@ -52,20 +52,6 @@
     <div class="flex flex-col p-4 mt-auto gap-4">
       <template v-if="!isFluid">
         <custom-tooltip
-          text="Change theme"
-          size="md"
-          :content="{
-            side: 'right',
-          }"
-          :delay-duration="100"
-        >
-          <app-theme-button
-            :ui="{
-              base: '*:size-6',
-            }"
-          />
-        </custom-tooltip>
-        <custom-tooltip
           text="Settings"
           size="md"
           :content="{
@@ -76,10 +62,28 @@
           <u-button
             variant="ghost"
             to="/settings"
+            color="neutral"
             :icon="settingsIcon"
             :ui="{
               base: '*:size-6',
             }"
+          />
+        </custom-tooltip>
+        <custom-tooltip
+          text="Logout"
+          size="md"
+          :content="{
+            side: 'right',
+          }"
+          :delay-duration="100"
+        >
+          <u-button
+            variant="ghost"
+            :ui="{
+              base: 'rotate-y-180',
+            }"
+            :icon="logoutIcon"
+            color="error"
           />
         </custom-tooltip>
       </template>
@@ -89,6 +93,17 @@
           to="/settings"
           :icon="settingsIcon"
           label="Settings"
+          color="neutral"
+          :ui="{
+            leadingIcon: 'size-6',
+            base: 'text-sm',
+          }"
+        />
+        <u-button
+          variant="ghost"
+          :icon="logoutIcon"
+          label="Logout"
+          color="error"
           :ui="{
             leadingIcon: 'size-6',
             base: 'text-sm',
@@ -103,8 +118,10 @@
 import type { ButtonProps } from "@nuxt/ui";
 import {
   appLogoIcon,
+  chartIcon,
   devicesIcon,
   fileIcon,
+  logoutIcon,
   sensorIcon,
   settingsIcon,
   systemIcon,
@@ -134,6 +151,12 @@ const asideNavItems: {
     label: "Sensors",
     to: "/sensors",
     icon: sensorIcon,
+    color: "secondary",
+  },
+  {
+    label: "Analytics",
+    to: "/analytics",
+    icon: chartIcon,
     color: "secondary",
   },
   {
