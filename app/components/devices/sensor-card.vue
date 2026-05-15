@@ -1,100 +1,91 @@
 <script lang="ts" setup>
-import { chartIcon, sensorIcon } from "~/core/icons-map";
-import type { SensorSettings } from "~/types/models";
+import { editIcon } from "~/core/icons-map";
+import { SENSOR_TYPE_COLOR, type SensorDataType, type SensorSettings } from "~/types/models";
 
-defineProps<{
+const props = defineProps<{
   item: SensorSettings;
-  optimize?: boolean;
 }>();
 
-const showValues = ref<boolean>(false);
+const emit = defineEmits<{
+  (e: "edit", sensor: SensorSettings): void;
+}>();
 
-const toggleShowValues = () => {
-  showValues.value = !showValues.value;
+const rt = useRealTimeStore();
+
+const metric = computed(() =>
+  props.item.sensorId != null ? rt.getValueBySensorId(props.item.sensorId) : undefined,
+);
+
+const displayValue = computed(() => {
+  if (metric.value == null) return null;
+  const v = metric.value.value;
+  return v != null ? Number(v).toFixed(2) : null;
+});
+
+// Static map — full class strings required for Tailwind v4 scanning
+const ACCENT_CLASS: Record<SensorDataType, string> = {
+  ANALOG: "bg-info-500",
+  DIGITAL: "bg-success-500",
+  VIRTUAL: "bg-warning-500",
 };
+
+const accentClass = computed(() =>
+  props.item.dataType ? ACCENT_CLASS[props.item.dataType] : "bg-neutral-500",
+);
 </script>
 
 <template>
-  <NuxtLink
-    :to="'/sensors/' + item.sensorId"
-    class="group border border-default hover:border-tertiary/50 duration-75 ease-out h-fit relative overflow-hidden rounded-lg p-4 transition-colors flex items-center gap-4"
-    :class="[!optimize ? 'items-center' : 'items-start flex-col']"
+  <div
+    class="group relative flex flex-col gap-2.5 rounded-lg border border-default bg-elevated/30 p-3 pl-3.5 overflow-hidden transition-colors hover:border-tertiary/40 hover:bg-elevated/60"
   >
-    <UIcon
-      v-if="optimize"
-      :name="sensorIcon"
-      class="text-tertiary/75 size-16 absolute -top-4 -right-2 animate-pulse"
-    />
-    <UBadge
-      variant="outline"
-      color="neutral"
-      class="flex-col aspect-square! w-fit min-w-0 min-h-0 gap-0"
-    >
-      <span class="text-base font-bold font-mono text-tertiary">{{
-        item.portNumber
-      }}</span>
-      <span class="text-xs uppercase text-muted leading-none">Port</span>
-    </UBadge>
+    <!-- type accent bar -->
+    <div class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg" :class="accentClass" />
 
-    <div class="flex flex-col items-start gap-1 min-w-0 flex-1">
-      <div
-        class="flex items-center gap-2"
-        :class="[!optimize || 'flex-col items-start']"
-      >
-        <span
-          :title="item.name || ''"
-          class="text-xl font-mono font-bold truncate transition-colors"
-        >
-          {{ item.name || "Unnamed Sensor" }}
+    <!-- top: name + port -->
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex flex-col gap-0.5 min-w-0">
+        <span class="font-mono font-bold text-sm leading-tight truncate">
+          {{ item.name || "Unnamed" }}
         </span>
-        <div class="flex gap-2">
-          <UBadge
-            variant="subtle"
-            color="neutral"
-            size="sm"
-            class="text-[10px] px-1.5 py-0"
-          >
-            {{ item.dataType }}
-          </UBadge>
-          <UBadge
-            v-if="item.slug"
-            :label="item.slug"
-            size="lg"
-            color="neutral"
-            class="text-[10px] px-1.5 py-0"
-            variant="subtle"
-          />
-        </div>
+        <span v-if="item.slug" class="text-[10px] text-muted font-mono truncate leading-none">
+          {{ item.slug }}
+        </span>
       </div>
-
-      <div class="flex items-center gap-3 mt-1">
-        <div class="flex items-center gap-1">
-          <span class="text-base text-muted uppercase">Unit:</span>
-          <span class="text-sm font-mono text-tertiary/80">{{
-            item.unit || "—"
-          }}</span>
-        </div>
-        <div class="flex items-center gap-1 min-w-0">
-          <span class="text-sm text-muted uppercase">ID:</span>
-          <span class="text-sm font-mono truncate text-muted/70">{{
-            item.sensorId
-          }}</span>
-        </div>
-      </div>
+      <UBadge variant="outline" color="neutral" size="xs" class="shrink-0 font-mono tabular-nums">
+        P{{ item.portNumber }}
+      </UBadge>
     </div>
 
-    <div v-if="showValues" class="mx-auto max-w-3xl space-y-6 rounded-lg">
-      <!-- TODO: line charts  -->
+    <!-- value -->
+    <div class="flex items-baseline gap-1.5">
+      <span
+        class="text-2xl font-mono font-bold tabular-nums leading-none"
+        :class="displayValue != null ? 'text-default' : 'text-muted/40'"
+      >
+        {{ displayValue ?? "—" }}
+      </span>
+      <span v-if="item.unit" class="text-xs text-muted uppercase tracking-wider">
+        {{ item.unit }}
+      </span>
     </div>
 
-    <UButton
-      :leading-icon="chartIcon"
-      label="show values"
-      variant="soft"
-      size="lg"
-      color="info"
-      :block="optimize"
-      @click.prevent.stop="toggleShowValues"
-    />
-  </NuxtLink>
+    <!-- footer: id + edit -->
+    <div class="flex items-center justify-between pt-1.5 border-t border-default/40">
+      <NuxtLink
+        :to="`/sensors/${item.sensorId}`"
+        class="text-[10px] text-muted/60 font-mono hover:text-muted transition-colors"
+        @click.stop
+      >
+        #{{ item.sensorId }}
+      </NuxtLink>
+      <UButton
+        :leading-icon="editIcon"
+        size="xs"
+        variant="ghost"
+        color="neutral"
+        class="opacity-0 group-hover:opacity-100 transition-opacity"
+        @click.stop="emit('edit', item)"
+      />
+    </div>
+  </div>
 </template>

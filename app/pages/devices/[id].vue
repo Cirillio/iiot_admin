@@ -2,37 +2,112 @@
 import {
   arrowLeftIcon,
   binaryIcon,
-  deviceIcon,
+  calendarIcon,
+  deleteIcon,
+  editIcon,
   gatewayIcon,
   hashIcon,
+  plugIcon,
   reloadIcon,
   sensorIcon,
 } from "~/core/icons-map";
-
-const { isFluid } = useLayout();
+import {
+  SENSOR_DATA_TYPE,
+  SENSOR_TYPE_COLOR,
+  type Device,
+  type SensorDataType,
+  type SensorSettings,
+  type UpdateDeviceDto,
+} from "~/types/models";
 
 const api = useApi();
-
+const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
-const deviceId = route.params.id;
+const deviceId = Number(route.params.id);
 
 const { data, error, pending, refresh } = useAsyncData(
   `device-${deviceId}`,
-  () => api.devices.getById(Number(deviceId)),
-  {
-    immediate: true,
-  },
+  () => api.devices.getById(deviceId),
+  { immediate: true },
 );
 
-const device = computed(() => {
+const device = computed<Device>(() => {
   const { sensors, ...rest } = data.value || {};
-  return rest;
+  return rest as Device;
 });
 
-const sensors = computed(() => {
-  return data.value?.sensors || [];
-});
+const sensors = computed<SensorSettings[]>(() => data.value?.sensors ?? []);
+
+const SENSOR_GROUPS = [
+  { type: SENSOR_DATA_TYPE.ANALOG,  label: "Analog" },
+  { type: SENSOR_DATA_TYPE.DIGITAL, label: "Digital" },
+  { type: SENSOR_DATA_TYPE.VIRTUAL, label: "Virtual" },
+] as const;
+
+const sensorsByType = computed(() =>
+  Object.fromEntries(
+    SENSOR_GROUPS.map(({ type }) => [
+      type,
+      sensors.value.filter((s) => s.dataType === type),
+    ]),
+  ) as Record<SensorDataType, SensorSettings[]>,
+);
+
+// --- Device edit/delete ---
+
+const editOpen = ref(false);
+const deleteOpen = ref(false);
+
+const handleDeviceUpdate = async (dto: UpdateDeviceDto) => {
+  try {
+    await api.devices.update(deviceId, dto);
+    await refresh();
+    toast.add({ title: "Device updated", color: "success" });
+  } catch {
+    toast.add({ title: "Failed to update device", color: "error" });
+  }
+};
+
+const handleDeviceDelete = async () => {
+  try {
+    await api.devices.delete(deviceId);
+    toast.add({ title: "Device deleted", color: "success" });
+    router.push("/devices");
+  } catch {
+    toast.add({ title: "Failed to delete device", color: "error" });
+  }
+};
+
+// --- Sensor edit ---
+
+const sensorEditOpen = ref(false);
+const selectedSensor = ref<SensorSettings | null>(null);
+
+const openSensorEdit = (sensor: SensorSettings) => {
+  selectedSensor.value = sensor;
+  sensorEditOpen.value = true;
+};
+
+const handleSensorUpdate = async (dto: Partial<SensorSettings>) => {
+  if (!selectedSensor.value?.sensorId) return;
+  try {
+    await api.sensors.update(selectedSensor.value.sensorId, {
+      name: dto.name,
+      slug: dto.slug,
+      dataType: dto.dataType,
+      unit: dto.unit,
+      portNumber: dto.portNumber,
+    });
+    await refresh();
+    toast.add({ title: "Sensor updated", color: "success" });
+  } catch {
+    toast.add({ title: "Failed to update sensor", color: "error" });
+  }
+};
+
+// --- Utils ---
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return "N/A";
@@ -53,107 +128,163 @@ definePageMeta({
 
 <template>
   <div class="overflow-hidden w-full h-full flex flex-col">
-    <!-- header -->
-    <div class="flex p-4 border-b border-default relative items-center gap-4">
-      <div class="flex items-center gap-1">
+
+    <!-- Modals -->
+    <DevicesEditModal
+      v-model:open="editOpen"
+      :device="device"
+      @submit="handleDeviceUpdate"
+    />
+    <DevicesDeleteModal
+      v-model:open="deleteOpen"
+      :device-name="device?.name"
+      @confirm="handleDeviceDelete"
+    />
+    <SensorsEditModal
+      v-model:open="sensorEditOpen"
+      :sensor="selectedSensor"
+      @submit="handleSensorUpdate"
+    />
+
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-default shrink-0">
+      <div class="flex items-center gap-1.5">
         <UButton
-          size="lg"
-          title="back to devices"
           :icon="arrowLeftIcon"
           variant="ghost"
           color="neutral"
+          size="sm"
+          title="Back to devices"
           to="/devices"
         />
         <UButton
-          size="lg"
-          title="refresh data"
           :icon="reloadIcon"
           variant="outline"
           color="neutral"
+          size="sm"
+          title="Refresh"
           :disabled="pending"
-          @click="() => refresh()"
+          @click="refresh()"
         />
       </div>
-
-      <div class="flex text-muted flex-col gap-2">
-        <div class="flex items-center gap-4 flex-wrap">
-          <span class="text-muted text-xs flex items-center gap-1">
-            <UIcon :name="hashIcon" class="size-3" />
-            ID:
-            <div class="text-tertiary">
-              {{ device?.id }}
-            </div>
-          </span>
-          <span
-            v-if="device?.ipAddress"
-            class="text-muted text-xs flex items-center gap-1"
-          >
-            <UIcon :name="gatewayIcon" class="size-3" />
-            <div class="text-tertiary">
-              {{ device?.ipAddress }}:{{ device?.port }}
-            </div>
-          </span>
-          <span
-            v-if="device?.slaveId !== undefined"
-            class="text-muted text-xs flex items-center gap-1"
-          >
-            <UIcon :name="binaryIcon" class="size-3" />
-            Slave ID:
-            <div class="text-tertiary">{{ device?.slaveId }}</div>
-          </span>
-        </div>
-
-        <h1 class="text-3xl font-bold bg-amber-200 w-fit text-black px-1">
-          {{ device?.name }}
-        </h1>
-
-        <div class="flex items-center gap-4 text-xs">
-          <span class="flex items-center gap-1">
-            <UIcon :name="sensorIcon" class="size-3" />
-            sensors:
-            <span class="text-tertiary">
-              {{ device?.totalSensors || sensors.length }}</span
-            >
-          </span>
-          <span
-            >added:
-            <span class="text-tertiary">
-              {{ formatDate(device?.createdAt) }}
-            </span>
-          </span>
-        </div>
-      </div>
-
-      <div
-        class="absolute right-4 top-1/2 -translate-y-1/2 bg-accented/50 aspect-square size-fit flex rounded-md p-1"
-      >
-        <UIcon
-          :name="deviceIcon"
-          class="size-12"
-          :class="
-            device?.isActive
-              ? 'text-tertiary/75 animate-pulse'
-              : 'text-muted'
-          "
+      <div class="flex items-center gap-2">
+        <UButton
+          :leading-icon="editIcon"
+          label="Edit"
+          variant="outline"
+          color="neutral"
+          size="sm"
+          @click="editOpen = true"
+        />
+        <UButton
+          :leading-icon="deleteIcon"
+          label="Delete"
+          variant="outline"
+          color="error"
+          size="sm"
+          @click="deleteOpen = true"
         />
       </div>
     </div>
-    <!-- sensors -->
-    <div class="flex flex-col p-4 flex-1 min-h-0 overflow-hidden gap-4">
-      <h2 class="text-xl font-semibold flex items-center gap-2">
-        Connected Sensors ({{ sensors.length }})
-      </h2>
 
-      <ScrollableWrapper>
-        <div class="grid gap-4" :class="[isFluid || 'grid-cols-2']">
-          <DevicesSensorCard
-            v-for="sensor in sensors"
-            :key="sensor.sensorId"
-            :item="sensor"
-            :optimize="!isFluid"
+    <!-- Device config card -->
+    <div class="px-4 pt-4 pb-3 border-b border-default shrink-0">
+      <div class="flex items-start gap-3 mb-3">
+        <!-- Status dot -->
+        <div class="mt-1.5 shrink-0">
+          <span
+            class="block size-2.5 rounded-full"
+            :class="device?.isActive ? 'bg-success-500 shadow-[0_0_6px_var(--color-success-500)]' : 'bg-neutral-500'"
           />
+        </div>
+        <h1 class="text-2xl font-bold font-mono leading-tight bg-amber-200 text-black px-1 w-fit">
+          {{ device?.name ?? "Loading…" }}
+        </h1>
+      </div>
+
+      <!-- Config stats row -->
+      <div class="flex flex-wrap gap-x-5 gap-y-1.5 pl-5">
+        <div v-if="device?.ipAddress" class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="gatewayIcon" class="size-3.5 text-muted shrink-0" />
+          <span class="text-muted">Address</span>
+          <span class="font-mono text-tertiary">{{ device.ipAddress }}:{{ device.port }}</span>
+        </div>
+
+        <div v-if="device?.slaveId != null" class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="binaryIcon" class="size-3.5 text-muted shrink-0" />
+          <span class="text-muted">Slave ID</span>
+          <span class="font-mono text-tertiary">{{ device.slaveId }}</span>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="sensorIcon" class="size-3.5 text-muted shrink-0" />
+          <span class="text-muted">Sensors</span>
+          <span class="font-mono text-tertiary">{{ sensors.length }}</span>
+        </div>
+
+        <div v-if="device?.id" class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="hashIcon" class="size-3.5 text-muted shrink-0" />
+          <span class="text-muted">ID</span>
+          <span class="font-mono text-tertiary">{{ device.id }}</span>
+        </div>
+
+        <div v-if="device?.createdAt" class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="calendarIcon" class="size-3.5 text-muted shrink-0" />
+          <span class="text-muted">Added</span>
+          <span class="font-mono text-tertiary">{{ formatDate(device.createdAt) }}</span>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-xs">
+          <UIcon :name="plugIcon" class="size-3.5 text-muted shrink-0" />
+          <span
+            class="font-mono"
+            :class="device?.isActive ? 'text-success-400' : 'text-muted'"
+          >
+            {{ device?.isActive ? "Active" : "Inactive" }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensors columns -->
+    <div class="flex-1 min-h-0 overflow-hidden p-4">
+      <ScrollableWrapper>
+        <div class="grid grid-cols-3 gap-5 items-start">
+          <div
+            v-for="group in SENSOR_GROUPS"
+            :key="group.type"
+            class="flex flex-col gap-2.5"
+          >
+            <!-- Column header -->
+            <div class="flex items-center gap-2 pb-1 border-b border-default">
+              <span class="text-xs font-semibold uppercase tracking-widest text-muted">
+                {{ group.label }}
+              </span>
+              <UBadge
+                :color="SENSOR_TYPE_COLOR[group.type]"
+                variant="subtle"
+                size="xs"
+              >
+                {{ sensorsByType[group.type].length }}
+              </UBadge>
+            </div>
+
+            <!-- Sensor cards -->
+            <template v-if="sensorsByType[group.type].length > 0">
+              <DevicesSensorCard
+                v-for="sensor in sensorsByType[group.type]"
+                :key="sensor.sensorId"
+                :item="sensor"
+                @edit="openSensorEdit"
+              />
+            </template>
+            <div v-else class="rounded-lg border border-dashed border-default/40 p-4 text-center">
+              <span class="text-xs text-muted/50">No sensors</span>
+            </div>
+          </div>
         </div>
       </ScrollableWrapper>
     </div>
+
   </div>
 </template>
