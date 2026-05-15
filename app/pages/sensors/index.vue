@@ -48,6 +48,17 @@ const toggleType = (t: SensorDataType) => {
   activeTypes.value = next;
 };
 
+const PAGE_SIZE = 25;
+const page = ref(1);
+
+watch([search, activeTypes], () => { page.value = 1; });
+
+const paginatedSensors = computed(() =>
+  filteredSensors.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE),
+);
+
+const showPagination = computed(() => filteredSensors.value.length > PAGE_SIZE);
+
 const toast = useToast();
 
 const handleDelete = async (id: number | undefined) => {
@@ -116,10 +127,19 @@ const handleDelete = async (id: number | undefined) => {
 
     <!-- Table -->
     <SensorsListTable
-      :data="filteredSensors"
+      :data="paginatedSensors"
       :sensor-metrics="metricsValues"
       @delete:sensor="handleDelete"
       @refresh="refresh"
     />
+
+    <div v-if="showPagination" class="flex justify-center py-3 border-t border-default shrink-0">
+      <UPagination
+        v-model:page="page"
+        :total="filteredSensors.length"
+        :items-per-page="PAGE_SIZE"
+        size="sm"
+      />
+    </div>
   </div>
 </template>
