@@ -91,6 +91,8 @@ const sensorSelectItems = computed(() =>
 
     <!-- Toolbar -->
     <div class="flex items-center gap-3 px-4 py-3 border-b border-default shrink-0 flex-wrap">
+      <span class="font-mono font-semibold text-sm shrink-0">Analytics</span>
+      <USeparator orientation="vertical" class="h-5" />
       <!-- Sensor select -->
       <div class="flex items-center gap-2 min-w-56">
         <UIcon :name="sensorIcon" class="size-4 text-muted shrink-0" />

@@ -1,29 +1,27 @@
 import { defineStore } from "pinia";
-
-type Metric = {
-  Time: string;
-  SensorId: number;
-  RawValue: number | null;
-  Value: number;
-};
+import type { Metric } from "~/types/api";
 
 export const useRealTimeStore = defineStore("RealTime", () => {
-  const values = ref<Map<number, Metric>>(new Map());
+  const values = reactive(new Map<number, Metric>());
   const appLogger = useAppLoggerStore();
 
   const isConnected = ref<boolean>(false);
 
   function onMetric(json: string) {
-    const metric = JSON.parse(json) as Metric;
-    values.value.set(metric.SensorId, metric);
-    appLogger.log.general(
-      "realtime-store-on-metric",
-      `Metric recevied: ${metric.Value} | ${metric.RawValue} | ${metric.Time} | ${metric.SensorId} `,
-    );
+    try {
+      const metric = JSON.parse(json) as Metric;
+      values.set(metric.sensorId, metric);
+      appLogger.log.general(
+        "realtime-store-on-metric",
+        `Metric received: ${metric.value} | ${metric.rawValue} | ${metric.time} | ${metric.sensorId}`,
+      );
+    } catch (e) {
+      appLogger.log.error("realtime-store-parse-error", `Failed to parse metric: ${e}`);
+    }
   }
 
-  function getValueBySensorId(sensorId: number) {
-    return values.value.get(sensorId)?.Value;
+  function getMetricBySensorId(sensorId: number) {
+    return values.get(sensorId);
   }
 
   return {
@@ -32,6 +30,6 @@ export const useRealTimeStore = defineStore("RealTime", () => {
     isConnected,
     // Actions
     onMetric,
-    getValueBySensorId,
+    getMetricBySensorId,
   };
 });

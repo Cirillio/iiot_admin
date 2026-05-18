@@ -28,33 +28,22 @@
       </template>
     </div>
 
-    <UPopover>
-      <button
-        class="flex max-lg:ml-auto gap-2 items-center rounded-md hover:bg-elevated pl-4 pr-2 py-2.5"
-      >
-        <div class="text-end flex flex-col justify-between">
-          <span class="leading-tight text-secondary text-xs">{{ user.role }}</span>
-          <span class="text-lg leading-tight font-medium">{{ user.name }}</span>
-        </div>
-        <UAvatar :src="user.avatar" class="size-10 ml-2" />
-        <Icon :name="chevronUpDownIcon" class="size-6 text-default/50" />
-      </button>
-
-      <template #content>
-        <div class="grid py-1 font-mono">
-          <span class="text-sm uppercase text-center text-default/75">Menu</span>
-          <USeparator class="my-1" />
-          <UButton to="/profile" size="lg" label="Profile" variant="ghost" color="neutral" :icon="userIcon" />
-          <USeparator class="my-1" />
-          <UButton to="/logout" size="lg" label="Logout" variant="ghost" color="error" :trailing-icon="arrowRightIcon" />
-        </div>
-      </template>
-    </UPopover>
+    <NuxtLink
+      to="/profile"
+      class="flex max-lg:ml-auto gap-2 items-center rounded-md hover:bg-elevated pl-4 pr-2 py-2.5"
+    >
+      <div class="text-end flex flex-col justify-between">
+        <span class="leading-tight text-secondary text-xs">{{
+          user.role
+        }}</span>
+        <span class="text-lg leading-tight font-medium">{{ user.name }}</span>
+      </div>
+      <UAvatar :src="user.avatar" class="size-10 ml-2" />
+    </NuxtLink>
   </header>
 </template>
 
 <script lang="ts" setup>
-import { arrowRightIcon, chevronUpDownIcon, userIcon } from "~/core/icons-map";
 import type { MOCK_USER } from "~/mock";
 
 type Props = {
@@ -67,7 +56,9 @@ const route = useRoute();
 
 const isIndex = computed(() => route.path === "/");
 const pageTitle = computed(() => route.meta.title || "Dashboard");
-const pageDescription = computed(() => route.meta.description || "IIoT System Monitoring");
+const pageDescription = computed(
+  () => route.meta.description || "IIoT System Monitoring",
+);
 
 const greeting = computed(() => {
   const hour = new Date().getHours();

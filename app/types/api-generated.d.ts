@@ -498,7 +498,23 @@ export interface components {
             name?: string | null;
             slug?: string | null;
             dataType?: string | null;
+            /** Format: int32 */
+            registerAddress?: number;
+            registerType?: string | null;
+            /** Format: int32 */
+            registerCount?: number;
             unit?: string | null;
+            /** Format: double */
+            inputMin?: number;
+            /** Format: double */
+            inputMax?: number;
+            /** Format: double */
+            outputMin?: number;
+            /** Format: double */
+            outputMax?: number;
+            /** Format: double */
+            offsetVal?: number;
+            formula?: string | null;
             uiConfig?: string | null;
         };
         DashboardDeviceDTO: {
@@ -549,6 +565,8 @@ export interface components {
             createdAt?: string;
         };
         /** @enum {string} */
+        ModbusRegisterType: "INPUT_REGISTER" | "HOLDING_REGISTER" | "DISCRETE_INPUT" | "COIL";
+        /** @enum {string} */
         SensorDataType: "ANALOG" | "DIGITAL" | "VIRTUAL";
         SensorSettings: {
             /** Format: int32 */
@@ -557,6 +575,11 @@ export interface components {
             deviceId?: number | null;
             /** Format: int32 */
             portNumber?: number | null;
+            /** Format: int32 */
+            registerAddress?: number;
+            registerType?: components["schemas"]["ModbusRegisterType"];
+            /** Format: int32 */
+            registerCount?: number;
             name?: string | null;
             slug?: string | null;
             dataType?: components["schemas"]["SensorDataType"];
@@ -641,7 +664,23 @@ export interface components {
             name?: string | null;
             slug?: string | null;
             dataType?: string | null;
+            /** Format: int32 */
+            registerAddress?: number;
+            registerType?: string | null;
+            /** Format: int32 */
+            registerCount?: number;
             unit?: string | null;
+            /** Format: double */
+            inputMin?: number;
+            /** Format: double */
+            inputMax?: number;
+            /** Format: double */
+            outputMin?: number;
+            /** Format: double */
+            outputMax?: number;
+            /** Format: double */
+            offsetVal?: number;
+            formula?: string | null;
             uiConfig?: string | null;
         };
     };

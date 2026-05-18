@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { closeIcon, plusIcon, reloadIcon, searchIcon } from "~/core/icons-map";
-import type { CreateDeviceDto, DashboardDevice, UpdateDeviceDto } from "~/types/models";
+import type {
+  CreateDeviceDto,
+  DashboardDevice,
+  UpdateDeviceDto,
+} from "~/types/models";
 
 definePageMeta({
   title: "Devices",
@@ -47,7 +51,9 @@ const stats = computed(() => ({
 
 const PAGE_SIZE = 20;
 const page = ref(1);
-watch([search, filterActive], () => { page.value = 1; });
+watch([search, filterActive], () => {
+  page.value = 1;
+});
 
 const paginated = computed(() =>
   filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE),
@@ -107,7 +113,10 @@ const handleDelete = async () => {
   try {
     await api.devices.delete(id);
     await refresh();
-    toast.add({ title: `Device "${deleteTarget.value?.name}" deleted`, color: "success" });
+    toast.add({
+      title: `Device "${deleteTarget.value?.name}" deleted`,
+      color: "success",
+    });
   } catch {
     toast.add({ title: "Failed to delete device", color: "error" });
   }
@@ -116,14 +125,23 @@ const handleDelete = async () => {
 
 <template>
   <div class="flex h-full flex-col overflow-hidden">
-
     <!-- Modals -->
     <DevicesCreateModal v-model:open="createOpen" @submit="handleCreate" />
-    <DevicesEditModal v-model:open="editOpen" :device="editTarget" @submit="handleEdit" />
-    <DevicesDeleteModal v-model:open="deleteOpen" :device-name="deleteTarget?.name" @confirm="handleDelete" />
+    <DevicesEditModal
+      v-model:open="editOpen"
+      :device="editTarget"
+      @submit="handleEdit"
+    />
+    <DevicesDeleteModal
+      v-model:open="deleteOpen"
+      :device-name="deleteTarget?.name"
+      @confirm="handleDelete"
+    />
 
     <!-- Toolbar -->
-    <div class="flex items-center gap-3 border-b border-default px-4 py-3 shrink-0 flex-wrap">
+    <div
+      class="flex items-center gap-3 border-b border-default px-4 py-3 shrink-0 flex-wrap"
+    >
       <!-- Stats -->
       <div class="flex items-center gap-2 text-sm">
         <span class="font-mono font-bold text-default">{{ stats.total }}</span>
@@ -132,9 +150,12 @@ const handleDelete = async () => {
         <span
           class="font-mono font-semibold"
           :class="stats.active > 0 ? 'text-success-400' : 'text-muted'"
-        >{{ stats.active }}</span>
+          >{{ stats.active }}</span
+        >
         <span class="text-muted">active</span>
-        <span class="font-mono font-semibold text-muted">{{ stats.inactive }}</span>
+        <span class="font-mono font-semibold text-muted">{{
+          stats.inactive
+        }}</span>
         <span class="text-muted">inactive</span>
       </div>
 
@@ -176,7 +197,13 @@ const handleDelete = async () => {
         :ui="{ trailing: 'pr-1' }"
       >
         <template v-if="search" #trailing>
-          <UButton :icon="closeIcon" size="xs" variant="ghost" color="neutral" @click="search = ''" />
+          <UButton
+            :icon="closeIcon"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            @click="search = ''"
+          />
         </template>
       </UInput>
 
@@ -190,7 +217,13 @@ const handleDelete = async () => {
       />
 
       <!-- Actions -->
-      <div class="ml-auto flex items-center gap-2">
+      <div class="flex items-center gap-2">
+        <UButton
+          :leading-icon="plusIcon"
+          label="New device"
+          size="sm"
+          @click="createOpen = true"
+        />
         <UButton
           :icon="reloadIcon"
           variant="ghost"
@@ -198,12 +231,6 @@ const handleDelete = async () => {
           size="sm"
           :disabled="pending"
           @click="refresh()"
-        />
-        <UButton
-          :leading-icon="plusIcon"
-          label="New device"
-          size="sm"
-          @click="createOpen = true"
         />
       </div>
     </div>
@@ -223,13 +250,19 @@ const handleDelete = async () => {
           @delete="openDelete"
         />
       </div>
-      <div v-else class="flex-1 h-full flex items-center justify-center text-muted text-sm">
+      <div
+        v-else
+        class="flex-1 h-full flex items-center justify-center text-muted text-sm"
+      >
         No devices match the current filter
       </div>
     </div>
 
     <!-- Pagination -->
-    <div v-if="showPagination" class="flex justify-center py-3 border-t border-default shrink-0">
+    <div
+      v-if="showPagination"
+      class="flex justify-center py-3 border-t border-default shrink-0"
+    >
       <UPagination
         v-model:page="page"
         :total="filtered.length"

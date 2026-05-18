@@ -32,7 +32,7 @@ const notifications = useNotificationsStore();
               ? notificationActiveIcon
               : notificationIcon
           "
-          variant="soft"
+          variant="ghost"
           color="neutral"
         />
       </UChip>

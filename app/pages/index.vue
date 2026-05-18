@@ -8,6 +8,7 @@ import {
   sensorIcon,
   signalIcon,
 } from "~/core/icons-map";
+import { MOCK_USER } from "~/mock";
 import { type SensorDataType } from "~/types/models";
 
 const TYPE_DOT: Record<SensorDataType, string> = {
@@ -46,14 +47,27 @@ const getMetricValue = (sensorId: number | undefined) => {
   const m = rt.getMetricBySensorId(sensorId);
   return m != null ? Number(m.value).toFixed(2) : null;
 };
+
+const greeting = computed(() => {
+  const h = new Date().getHours();
+  if (h < 6)  return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+});
 </script>
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
 
-    <!-- Toolbar -->
-    <div class="flex items-center justify-between px-4 py-3 border-b border-default shrink-0">
-      <span class="text-sm text-muted font-mono">Overview</span>
+    <!-- Page header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-default shrink-0">
+      <div class="flex flex-col gap-0.5">
+        <h1 class="text-xl font-bold font-mono leading-tight">
+          {{ greeting }}, <span class="text-primary">{{ MOCK_USER.name }}</span>
+        </h1>
+        <span class="text-xs text-muted font-mono">IIoT Control Panel — system overview</span>
+      </div>
       <UButton
         :icon="reloadIcon"
         variant="ghost"

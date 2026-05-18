@@ -91,6 +91,7 @@ const icons = {
   databaseIcon: "ph:database",
   cloudIcon: "ph:cloud",
   githubIcon: "ph:github-logo",
+  logoutIcon: "ph:sign-out",
 } as const;
 
 export default icons;
@@ -112,6 +113,7 @@ export const {
   homeIcon,
   menuIcon,
   searchIcon,
+  logoutIcon,
   reloadIcon,
   closeIcon,
   plusIcon,

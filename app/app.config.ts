@@ -2,7 +2,7 @@ export default defineAppConfig({
   ui: {
     colors: {
       primary: "red",
-      neutral: "mist",
+      neutral: "neutral",
       tertiary: "emerald",
     },
     popover: {
@@ -19,6 +19,11 @@ export default defineAppConfig({
     toaster: {
       defaultVariants: {
         position: "top-center",
+      },
+    },
+    modal: {
+      slots: {
+        overlay: "bg-black/50! backdrop-blur-xs",
       },
     },
   },

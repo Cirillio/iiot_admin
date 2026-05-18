@@ -7,7 +7,9 @@
   "paths": {
     "/api/devices": {
       "get": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -51,7 +53,9 @@
         }
       },
       "post": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -100,7 +104,9 @@
     },
     "/api/devices/{id}": {
       "get": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -136,7 +142,9 @@
         }
       },
       "put": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -174,7 +182,9 @@
         }
       },
       "delete": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -195,7 +205,9 @@
     },
     "/api/metrics/history": {
       "get": {
-        "tags": ["Metrics"],
+        "tags": [
+          "Metrics"
+        ],
         "parameters": [
           {
             "name": "sensorId",
@@ -231,7 +243,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
                 }
               },
@@ -240,7 +252,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
                 }
               },
@@ -249,7 +261,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
                 }
               }
@@ -260,7 +272,9 @@
     },
     "/api/sensors": {
       "get": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -294,7 +308,9 @@
         }
       },
       "post": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -343,7 +359,9 @@
     },
     "/api/sensors/{id}": {
       "get": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -379,7 +397,9 @@
         }
       },
       "put": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -417,7 +437,9 @@
         }
       },
       "delete": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -438,7 +460,9 @@
     },
     "/api/sensors/device/{deviceId}": {
       "get": {
-        "tags": ["Sensors"],
+        "tags": [
+          "Sensors"
+        ],
         "parameters": [
           {
             "name": "deviceId",
@@ -485,7 +509,9 @@
     },
     "/api/system/config": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -510,7 +536,9 @@
         }
       },
       "put": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -539,7 +567,9 @@
     },
     "/api/system/status": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -624,7 +654,43 @@
             "type": "string",
             "nullable": true
           },
+          "registerAddress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "registerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "registerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "inputMin": {
+            "type": "number",
+            "format": "double"
+          },
+          "inputMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "outputMin": {
+            "type": "number",
+            "format": "double"
+          },
+          "outputMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "offsetVal": {
+            "type": "number",
+            "format": "double"
+          },
+          "formula": {
             "type": "string",
             "nullable": true
           },
@@ -763,8 +829,21 @@
         },
         "additionalProperties": false
       },
+      "ModbusRegisterType": {
+        "enum": [
+          "INPUT_REGISTER",
+          "HOLDING_REGISTER",
+          "DISCRETE_INPUT",
+          "COIL"
+        ],
+        "type": "string"
+      },
       "SensorDataType": {
-        "enum": ["ANALOG", "DIGITAL", "VIRTUAL"],
+        "enum": [
+          "ANALOG",
+          "DIGITAL",
+          "VIRTUAL"
+        ],
         "type": "string"
       },
       "SensorSettings": {
@@ -783,6 +862,17 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "registerAddress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "registerType": {
+            "$ref": "#/components/schemas/ModbusRegisterType"
+          },
+          "registerCount": {
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "type": "string",
@@ -1006,7 +1096,43 @@
             "type": "string",
             "nullable": true
           },
+          "registerAddress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "registerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "registerCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "inputMin": {
+            "type": "number",
+            "format": "double"
+          },
+          "inputMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "outputMin": {
+            "type": "number",
+            "format": "double"
+          },
+          "outputMax": {
+            "type": "number",
+            "format": "double"
+          },
+          "offsetVal": {
+            "type": "number",
+            "format": "double"
+          },
+          "formula": {
             "type": "string",
             "nullable": true
           },

@@ -37,7 +37,7 @@ const route = useRoute();
 
                 <div class="space-y-2">
                   <h1 class="text-4xl font-bold font-mono text-primary">
-                    {{ error?.statusCode || "ERROR" }}
+                    {{ (error as any)?.statusCode || "ERROR" }}
                   </h1>
                   <p class="text-muted text-lg max-w-md">
                     {{
