@@ -3,8 +3,9 @@
   <UTooltip
     v-bind="$attrs"
     :ui="{
-      text: `font-mono text-secondary ${sizeClass}`,
-      content: 'bg-elevated',
+      text: `font-sans text-white ${sizeClass}`,
+      content:
+        'bg-white/40 rounded-full px-4 py-4 backdrop-blur-sm ring-white/80 shadow-lg',
     }"
   >
     <slot />

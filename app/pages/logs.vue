@@ -52,7 +52,7 @@ const handleExport = () => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col">
+  <div class="flex h-full w-full flex-col">
     <LogsToolbar
       v-model:search="search"
       v-model:active-statuses="activeStatuses"

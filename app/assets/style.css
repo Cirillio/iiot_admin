@@ -9,6 +9,7 @@
 
 :root {
   --ui-radius: 0.125rem;
+  --ui-border: var(--color-neutral-700);
 }
 
 @source inline("{bg-{neutral,amber,rose,sky}-500/{10},ring-{neutral,amber,rose,sky}-500/{50},text-{neutral,amber,rose,sky}-{400,500}}");
@@ -17,6 +18,7 @@
   html,
   body {
     scroll-behavior: smooth;
+    @apply bg-black;
   }
 
   h1,
@@ -40,6 +42,7 @@
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+    cursor: pointer;
   }
 
   ::-webkit-scrollbar-track {
@@ -47,7 +50,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #fbbf24; /* amber-400 */
+    background: var(--color-mist-700); /* amber-400 */
     border-radius: 10px;
     border: 2px solid transparent;
   }
@@ -58,6 +61,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #fbbf24 transparent;
+
+    scrollbar-color: var(--color-mist-700) transparent;
   }
 }

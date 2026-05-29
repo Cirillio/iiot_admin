@@ -1,10 +1,16 @@
 <script lang="ts" setup>
 import { saveIcon } from "~/core/icons-map";
-import type { DashboardDevice, Device, UpdateDeviceDto } from "~/types/models";
+import type {
+  DashboardDevice,
+  Device,
+  ModbusConnection,
+  UpdateDeviceDto,
+} from "~/types/models";
 
 const props = defineProps<{
   open: boolean;
   device: Device | DashboardDevice | null;
+  connections: ModbusConnection[];
 }>();
 
 const emits = defineEmits<{
@@ -12,11 +18,19 @@ const emits = defineEmits<{
   (e: "submit", value: UpdateDeviceDto): void;
 }>();
 
-const form = reactive<UpdateDeviceDto>({
+const form = reactive<{
+  name: string;
+  connectionId: number | undefined;
+  slaveId: number;
+  useGroupPolling: boolean;
+  maxRegisterSpan: number;
+  isActive: boolean;
+}>({
   name: "",
-  ipAddress: "",
-  port: 502,
+  connectionId: undefined,
   slaveId: 1,
+  useGroupPolling: true,
+  maxRegisterSpan: 125,
   isActive: true,
 });
 
@@ -25,12 +39,20 @@ watch(
   (d) => {
     if (!d) return;
     form.name = d.name ?? "";
-    form.ipAddress = d.ipAddress ?? "";
-    form.port = d.port ?? 502;
+    form.connectionId = d.connectionId ?? undefined;
     form.slaveId = d.slaveId ?? 1;
+    form.useGroupPolling = d.useGroupPolling ?? true;
+    form.maxRegisterSpan = d.maxRegisterSpan ?? 125;
     form.isActive = d.isActive ?? true;
   },
   { immediate: true },
+);
+
+const connectionOptions = computed(() =>
+  props.connections.map((c) => ({
+    label: `${c.ipAddress}:${c.port}${c.description ? ` — ${c.description}` : ""}`,
+    value: c.id,
+  })),
 );
 
 const handleSubmit = () => {
@@ -56,24 +78,52 @@ const handleSubmit = () => {
 
         <div class="grid grid-cols-2 gap-4">
           <UFormField label="Name" class="col-span-2">
-            <UInput v-model="form.name" placeholder="Device name" class="w-full" />
+            <UInput
+              v-model="form.name"
+              placeholder="Device name"
+              class="w-full"
+            />
           </UFormField>
 
-          <UFormField label="IP Address" class="col-span-2">
-            <UInput v-model="form.ipAddress" placeholder="192.168.1.100" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Port">
-            <UInput v-model="form.port" type="number" class="w-full" />
+          <UFormField label="Connection" class="col-span-2">
+            <USelect
+              v-model="form.connectionId"
+              :items="connectionOptions"
+              placeholder="Select a connection"
+              class="w-full"
+            />
           </UFormField>
 
           <UFormField label="Slave ID">
             <UInput v-model="form.slaveId" type="number" class="w-full" />
           </UFormField>
 
-          <UFormField label="Active" class="col-span-2 flex items-center gap-3">
+          <UFormField label="Max register span">
+            <UInput v-model="form.maxRegisterSpan" type="number" class="w-full" />
+          </UFormField>
+
+          <UFormField
+            label="Group polling"
+            class="col-span-2 flex items-center gap-3"
+          >
+            <UToggle v-model="form.useGroupPolling" />
+            <span class="text-sm text-muted">{{
+              form.useGroupPolling ? "Grouped reads" : "Per-register reads"
+            }}</span>
+          </UFormField>
+
+          <UFormField
+            label="Active"
+            class="col-span-2 flex items-baseline justify-between gap-4"
+          >
             <UToggle v-model="form.isActive" />
-            <span class="text-sm text-muted">{{ form.isActive ? "Online" : "Offline" }}</span>
+            <span
+              class="text-sm text-muted"
+              :class="[
+                form.isActive ? 'text-success animate-pulse' : 'text-error',
+              ]"
+              >{{ form.isActive ? "Online" : "Offline" }}</span
+            >
           </UFormField>
         </div>
 

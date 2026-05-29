@@ -53,10 +53,10 @@ const onKeydown = (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="group relative flex flex-col gap-3 rounded-sm border p-4 cursor-pointer transition-all duration-200"
+    class="group relative flex flex-col gap-3 rounded-sm border hover:border-white p-4 cursor-pointer transition-all duration-75"
     :class="[
       isDirty
-        ? 'border-amber-500/40 bg-amber-500/5'
+        ? 'border-error bg-amber-500/5'
         : 'border-default bg-transparent hover:border-muted/40',
     ]"
     @click="!editing && startEdit()"
@@ -69,18 +69,29 @@ const onKeydown = (e: KeyboardEvent) => {
 
     <!-- header -->
     <div class="flex items-center gap-2">
-      <UIcon :name="icon" class="size-4 text-muted shrink-0" :class="isDirty && 'text-amber-400'" />
-      <span class="text-[11px] font-semibold uppercase tracking-widest text-muted" :class="isDirty && 'text-amber-400/80'">
+      <UIcon
+        :name="icon"
+        class="size-4 text-muted shrink-0"
+        :class="isDirty && 'text-amber-400'"
+      />
+      <span
+        class="text-[11px] font-semibold uppercase tracking-widest text-muted"
+        :class="isDirty && 'text-amber-400/80'"
+      >
         {{ label }}
       </span>
     </div>
 
     <!-- value -->
-    <div class="flex items-end gap-1.5 min-h-[2.5rem]">
+    <div class="flex items-end gap-1.5 min-h-10">
       <template v-if="!editing">
         <span
           class="text-3xl font-mono leading-none transition-colors"
-          :class="isDirty ? 'text-amber-300' : 'text-default group-hover:text-amber-400'"
+          :class="
+            isDirty
+              ? 'text-amber-300'
+              : 'text-default group-hover:text-amber-400'
+          "
         >
           {{ modelValue }}
         </span>
@@ -98,7 +109,9 @@ const onKeydown = (e: KeyboardEvent) => {
           @keydown="onKeydown"
           @click.stop
         />
-        <span v-if="unit" class="text-xs text-muted mb-1 shrink-0">{{ unit }}</span>
+        <span v-if="unit" class="text-xs text-muted mb-1 shrink-0">{{
+          unit
+        }}</span>
       </template>
     </div>
 

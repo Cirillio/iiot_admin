@@ -5,11 +5,216 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/connections": {
+      "get": {
+        "tags": ["Connections"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModbusConnection"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModbusConnection"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModbusConnection"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Connections"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConnectionDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConnectionDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/connections/{id}": {
+      "get": {
+        "tags": ["Connections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModbusConnection"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModbusConnection"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModbusConnection"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Connections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConnectionDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConnectionDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Connections"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/control/write": {
+      "post": {
+        "tags": ["Control"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteCommandDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteCommandDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteCommandDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/devices": {
       "get": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "parameters": [
           {
             "name": "limit",
@@ -53,9 +258,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -104,9 +307,7 @@
     },
     "/api/devices/{id}": {
       "get": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "parameters": [
           {
             "name": "id",
@@ -142,9 +343,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "parameters": [
           {
             "name": "id",
@@ -182,9 +381,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Devices"
-        ],
+        "tags": ["Devices"],
         "parameters": [
           {
             "name": "id",
@@ -205,12 +402,10 @@
     },
     "/api/metrics/history": {
       "get": {
-        "tags": [
-          "Metrics"
-        ],
+        "tags": ["Metrics"],
         "parameters": [
           {
-            "name": "sensorId",
+            "name": "tagId",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -243,7 +438,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": { }
+                    "items": {}
                   }
                 }
               },
@@ -252,7 +447,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": { }
+                    "items": {}
                   }
                 }
               },
@@ -261,244 +456,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": { }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/sensors": {
-      "get": {
-        "tags": [
-          "Sensors"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Sensors"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSensorDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSensorDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSensorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/sensors/{id}": {
-      "get": {
-        "tags": [
-          "Sensors"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/SensorSettings"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SensorSettings"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SensorSettings"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Sensors"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSensorDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSensorDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSensorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Sensors"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/sensors/device/{deviceId}": {
-      "get": {
-        "tags": [
-          "Sensors"
-        ],
-        "parameters": [
-          {
-            "name": "deviceId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SensorSettings"
+                    "items": {}
                   }
                 }
               }
@@ -509,9 +467,7 @@
     },
     "/api/system/config": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "responses": {
           "200": {
             "description": "OK",
@@ -536,9 +492,7 @@
         }
       },
       "put": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -567,9 +521,7 @@
     },
     "/api/system/status": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "responses": {
           "200": {
             "description": "OK",
@@ -602,17 +554,238 @@
           }
         }
       }
+    },
+    "/api/tags": {
+      "get": {
+        "tags": ["Tags"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Tags"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagSettings"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagSettings"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTagDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/tags/device/{deviceId}": {
+      "get": {
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagSettings"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "CreateDeviceDto": {
+      "CreateConnectionDto": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
           "ipAddress": {
             "type": "string",
             "nullable": true
@@ -621,17 +794,46 @@
             "type": "integer",
             "format": "int32"
           },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateDeviceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "connectionId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "slaveId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useGroupPolling": {
+            "type": "boolean"
+          },
+          "maxRegisterSpan": {
             "type": "integer",
             "format": "int32"
           },
           "isActive": {
             "type": "boolean"
+          },
+          "maxBitSpan": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
       },
-      "CreateSensorDto": {
+      "CreateTagDto": {
         "type": "object",
         "properties": {
           "deviceId": {
@@ -697,6 +899,19 @@
           "uiConfig": {
             "type": "string",
             "nullable": true
+          },
+          "endianness": {
+            "type": "string",
+            "nullable": true
+          },
+          "deadbandThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "rawDataType": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -712,6 +927,10 @@
             "type": "string",
             "nullable": true
           },
+          "connectionId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "ipAddress": {
             "type": "string",
             "nullable": true
@@ -724,6 +943,13 @@
             "type": "integer",
             "format": "int32"
           },
+          "useGroupPolling": {
+            "type": "boolean"
+          },
+          "maxRegisterSpan": {
+            "type": "integer",
+            "format": "int32"
+          },
           "isActive": {
             "type": "boolean"
           },
@@ -731,24 +957,24 @@
             "type": "string",
             "format": "date-time"
           },
-          "sensors": {
+          "tags": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DashboardSensorDTO"
+              "$ref": "#/components/schemas/DashboardTagDTO"
             },
             "nullable": true
           },
-          "totalSensors": {
+          "totalTags": {
             "type": "integer",
             "format": "int32"
           }
         },
         "additionalProperties": false
       },
-      "DashboardSensorDTO": {
+      "DashboardTagDTO": {
         "type": "object",
         "properties": {
-          "sensorId": {
+          "tagId": {
             "type": "integer",
             "format": "int32"
           },
@@ -768,15 +994,15 @@
             "type": "string",
             "nullable": true
           },
-          "sensorDataType": {
-            "$ref": "#/components/schemas/SensorDataType"
+          "dataType": {
+            "$ref": "#/components/schemas/TagDataType"
           },
           "unit": {
             "type": "string",
             "nullable": true
           },
           "uiConfigJson": {
-            "$ref": "#/components/schemas/SensorUiConfig"
+            "$ref": "#/components/schemas/TagUiConfig"
           },
           "updatedAt": {
             "type": "string",
@@ -796,26 +1022,33 @@
             "type": "string",
             "nullable": true
           },
-          "sensors": {
+          "tags": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SensorSettings"
+              "$ref": "#/components/schemas/TagSettings"
             },
             "nullable": true
           },
-          "totalSensors": {
+          "totalTags": {
             "type": "integer",
             "format": "int32"
           },
-          "ipAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "port": {
+          "connectionId": {
             "type": "integer",
             "format": "int32"
           },
           "slaveId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useGroupPolling": {
+            "type": "boolean"
+          },
+          "maxRegisterSpan": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxBitSpan": {
             "type": "integer",
             "format": "int32"
           },
@@ -829,6 +1062,32 @@
         },
         "additionalProperties": false
       },
+      "ModbusConnection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModbusEndianness": {
+        "enum": ["BIG_ENDIAN", "LITTLE_ENDIAN", "WORD_SWAP", "BYTE_WORD_SWAP"],
+        "type": "string"
+      },
       "ModbusRegisterType": {
         "enum": [
           "INPUT_REGISTER",
@@ -838,18 +1097,95 @@
         ],
         "type": "string"
       },
-      "SensorDataType": {
+      "RawDataType": {
+        "enum": ["INT16", "U_INT16", "INT32", "U_INT32", "FLOAT32", "FLOAT64"],
+        "type": "string"
+      },
+      "ServiceStatus": {
         "enum": [
-          "ANALOG",
-          "DIGITAL",
-          "VIRTUAL"
+          "ONLINE",
+          "OFFLINE",
+          "DEGRADED",
+          "CRITICAL_ERROR",
+          "MAINTENANCE"
         ],
         "type": "string"
       },
-      "SensorSettings": {
+      "SystemConfig": {
         "type": "object",
         "properties": {
-          "sensorId": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rawRetentionDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggRetentionDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pollingIntervalMs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "configReloadIntervalSec": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "healthCheckIntervalSec": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deadbandThreshold": {
+            "type": "number",
+            "format": "double"
+          },
+          "dataHeartbeatSec": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SystemStatus": {
+        "type": "object",
+        "properties": {
+          "serviceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          },
+          "uptimeSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastError": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastSync": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TagDataType": {
+        "enum": ["ANALOG_RAW", "ANALOG_PHYSICAL", "DIGITAL", "VIRTUAL"],
+        "type": "string"
+      },
+      "TagSettings": {
+        "type": "object",
+        "properties": {
+          "tagId": {
             "type": "integer",
             "format": "int32"
           },
@@ -874,6 +1210,12 @@
             "type": "integer",
             "format": "int32"
           },
+          "rawDataType": {
+            "$ref": "#/components/schemas/RawDataType"
+          },
+          "endianness": {
+            "$ref": "#/components/schemas/ModbusEndianness"
+          },
           "name": {
             "type": "string",
             "nullable": true
@@ -883,7 +1225,7 @@
             "nullable": true
           },
           "dataType": {
-            "$ref": "#/components/schemas/SensorDataType"
+            "$ref": "#/components/schemas/TagDataType"
           },
           "unit": {
             "type": "string",
@@ -909,12 +1251,17 @@
             "type": "number",
             "format": "double"
           },
+          "deadbandThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
           "formula": {
             "type": "string",
             "nullable": true
           },
           "uiConfigJson": {
-            "$ref": "#/components/schemas/SensorUiConfig"
+            "$ref": "#/components/schemas/TagUiConfig"
           },
           "updatedAt": {
             "type": "string",
@@ -923,7 +1270,7 @@
         },
         "additionalProperties": false
       },
-      "SensorUiConfig": {
+      "TagUiConfig": {
         "type": "object",
         "properties": {
           "color": {
@@ -971,83 +1318,20 @@
         },
         "additionalProperties": false
       },
-      "ServiceStatus": {
-        "enum": [
-          "ONLINE",
-          "OFFLINE",
-          "DEGRADED",
-          "CRITICAL_ERROR",
-          "MAINTENANCE"
-        ],
-        "type": "string"
-      },
-      "SystemConfig": {
+      "UpdateConnectionDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "rawRetentionDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggRetentionDays": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pollingIntervalMs": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "configReloadIntervalSec": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "healthCheckIntervalSec": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "deadbandThreshold": {
-            "type": "number",
-            "format": "double"
-          },
-          "dataHeartbeatSec": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "uiUpdateIntervalMs": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SystemStatus": {
-        "type": "object",
-        "properties": {
-          "serviceName": {
+          "ipAddress": {
             "type": "string",
             "nullable": true
           },
-          "status": {
-            "$ref": "#/components/schemas/ServiceStatus"
-          },
-          "uptimeSeconds": {
+          "port": {
             "type": "integer",
-            "format": "int64"
+            "format": "int32"
           },
-          "lastError": {
+          "description": {
             "type": "string",
             "nullable": true
-          },
-          "lastSync": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -1059,11 +1343,7 @@
             "type": "string",
             "nullable": true
           },
-          "ipAddress": {
-            "type": "string",
-            "nullable": true
-          },
-          "port": {
+          "connectionId": {
             "type": "integer",
             "format": "int32"
           },
@@ -1071,13 +1351,24 @@
             "type": "integer",
             "format": "int32"
           },
+          "useGroupPolling": {
+            "type": "boolean"
+          },
+          "maxRegisterSpan": {
+            "type": "integer",
+            "format": "int32"
+          },
           "isActive": {
             "type": "boolean"
+          },
+          "maxBitSpan": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
       },
-      "UpdateSensorDto": {
+      "UpdateTagDto": {
         "type": "object",
         "properties": {
           "portNumber": {
@@ -1139,6 +1430,37 @@
           "uiConfig": {
             "type": "string",
             "nullable": true
+          },
+          "endianness": {
+            "type": "string",
+            "nullable": true
+          },
+          "deadbandThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "rawDataType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WriteCommandDto": {
+        "type": "object",
+        "properties": {
+          "tagId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "operatorId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1147,16 +1469,22 @@
   },
   "tags": [
     {
+      "name": "Connections"
+    },
+    {
+      "name": "Control"
+    },
+    {
       "name": "Devices"
     },
     {
       "name": "Metrics"
     },
     {
-      "name": "Sensors"
+      "name": "System"
     },
     {
-      "name": "System"
+      "name": "Tags"
     }
   ]
 }

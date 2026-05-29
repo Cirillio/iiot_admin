@@ -42,7 +42,7 @@
           size="xs"
           color="neutral"
           block
-          @click="handleCopySensorValueSetups"
+          @click="handleCopyTagValueSetups"
         />
       </div>
     </template>
@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import { copyCheckIcon, copyIcon, infoIcon } from "~/core/icons-map";
 
-type SensorValueSetup = {
+type TagValueSetup = {
   inputMin?: number;
   inputMax?: number;
   outputMin?: number;
@@ -63,11 +63,11 @@ type SensorValueSetup = {
 
 const popoverOpen = ref(false);
 
-const props = defineProps<{ item: SensorValueSetup }>();
+const props = defineProps<{ item: TagValueSetup }>();
 
 const setupsIsCopied = ref(false);
 
-const handleCopySensorValueSetups = async () => {
+const handleCopyTagValueSetups = async () => {
   await navigator.clipboard.writeText(JSON.stringify(props.item));
   setupsIsCopied.value = true;
 };

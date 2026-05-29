@@ -5,7 +5,7 @@ import {
   deviceIcon,
   editIcon,
   gatewayIcon,
-  sensorIcon,
+  tagIcon,
 } from "~/core/icons-map";
 import type { DashboardDevice } from "~/types/models";
 
@@ -97,11 +97,11 @@ const emit = defineEmits<{
           }}</span>
         </div>
         <div class="flex items-center gap-1.5 text-muted">
-          <UIcon :name="sensorIcon" class="size-4 shrink-0" />
+          <UIcon :name="tagIcon" class="size-4 shrink-0" />
           <span class="font-mono font-semibold text-default">{{
-            item.totalSensors ?? 0
+            item.totalTags ?? 0
           }}</span>
-          <span>sensors</span>
+          <span>tags</span>
         </div>
       </div>
     </NuxtLink>

@@ -26,14 +26,10 @@ export class DevicesService extends BaseApiService {
     id: number,
     data: NonNullable<paths["/api/devices/{id}"]["put"]["requestBody"]>["content"]["application/json"],
   ) {
-    return await this.$http<
-      paths["/api/devices/{id}"]["put"]["responses"]["200"]
-    >(`/api/devices/${id}`, { method: "PUT", body: data });
+    return await this.$http<undefined>(`/api/devices/${id}`, { method: "PUT", body: data });
   }
 
   async delete(id: number) {
-    return await this.$http<
-      paths["/api/devices/{id}"]["delete"]["responses"]["200"]
-    >(`/api/devices/${id}`, { method: "DELETE" });
+    return await this.$http<undefined>(`/api/devices/${id}`, { method: "DELETE" });
   }
 }

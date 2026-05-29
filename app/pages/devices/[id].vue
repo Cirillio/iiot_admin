@@ -5,24 +5,30 @@ import {
   calendarIcon,
   deleteIcon,
   editIcon,
+  expandIcon,
   gatewayIcon,
   hashIcon,
+  plusIcon,
   reloadIcon,
-  sensorIcon,
+  tagIcon,
+  viewCardsIcon,
+  viewTableIcon,
 } from "~/core/icons-map";
+import type { Metric } from "~/types/api";
 import {
-  SENSOR_DATA_TYPE,
-  SENSOR_TYPE_COLOR,
+  type CreateTagDto,
   type Device,
-  type SensorDataType,
-  type SensorSettings,
+  type TagDataType,
+  type TagSettings,
   type UpdateDeviceDto,
 } from "~/types/models";
 
 definePageMeta({
   title: "Device",
-  description: "Device monitoring and sensor management",
+  description: "Device monitoring and tag management",
 });
+
+const { isFluid } = useLayout();
 
 const api = useApi();
 const router = useRouter();
@@ -39,30 +45,50 @@ const { data, pending, refresh } = useAsyncData(
 );
 
 const device = computed<Device>(() => {
-  const { sensors, ...rest } = data.value || {};
+  const { tags, ...rest } = data.value || {};
   return rest as Device;
 });
 
-const sensors = computed<SensorSettings[]>(() => data.value?.sensors ?? []);
+const tags = computed<TagSettings[]>(() => data.value?.tags ?? []);
 
-const SENSOR_GROUPS = [
-  { type: SENSOR_DATA_TYPE.ANALOG, label: "Analog" },
-  { type: SENSOR_DATA_TYPE.DIGITAL, label: "Digital" },
-  { type: SENSOR_DATA_TYPE.VIRTUAL, label: "Virtual" },
-] as const;
-
-const sensorsByType = computed(
-  () =>
-    Object.fromEntries(
-      SENSOR_GROUPS.map(({ type }) => [
-        type,
-        sensors.value.filter((s) => s.dataType === type),
-      ]),
-    ) as Record<SensorDataType, SensorSettings[]>,
+// Connection endpoint is decoupled from the device — resolve via connectionId.
+const { data: connectionsData } = useAsyncData("connections", () =>
+  api.connections.list(),
 );
 
-const typeCountLabel = (type: SensorDataType) =>
-  sensorsByType.value[type].length;
+const connections = computed(() => connectionsData.value ?? []);
+
+const connection = computed(
+  () =>
+    connectionsData.value?.find((c) => c.id === device.value?.connectionId) ??
+    null,
+);
+
+const TAG_GROUPS = [
+  {
+    label: "Analog",
+    color: "info" as const,
+    types: ["ANALOG_RAW", "ANALOG_PHYSICAL"] as TagDataType[],
+  },
+  {
+    label: "Digital",
+    color: "success" as const,
+    types: ["DIGITAL"] as TagDataType[],
+  },
+] as const;
+
+const tagsByGroup = computed(
+  () =>
+    Object.fromEntries(
+      TAG_GROUPS.map(({ label, types }) => [
+        label,
+        tags.value.filter((t) => t.dataType && types.includes(t.dataType)),
+      ]),
+    ) as Record<string, TagSettings[]>,
+);
+
+const groupTags = (label: string): TagSettings[] =>
+  tagsByGroup.value[label] ?? [];
 
 // --- Device edit/delete ---
 
@@ -74,8 +100,12 @@ const handleDeviceUpdate = async (dto: UpdateDeviceDto) => {
     await api.devices.update(deviceId, dto);
     await refresh();
     toast.add({ title: "Device updated", color: "success" });
-  } catch {
-    toast.add({ title: "Failed to update device", color: "error" });
+  } catch (e) {
+    toast.add({
+      title: "Failed to update device",
+      color: "error",
+      description: String(e),
+    });
   }
 };
 
@@ -89,30 +119,73 @@ const handleDeviceDelete = async () => {
   }
 };
 
-// --- Sensor edit ---
+// --- Tag view ---
 
-const sensorEditOpen = ref(false);
-const selectedSensor = ref<SensorSettings | null>(null);
+type ViewMode = "cards" | "table";
+const viewMode = ref<ViewMode>("cards");
+const tagsModalOpen = ref(false);
 
-const openSensorEdit = (sensor: SensorSettings) => {
-  selectedSensor.value = sensor;
-  sensorEditOpen.value = true;
+const tagMetrics = computed<Map<number, Metric>>(() => {
+  const map = new Map<number, Metric>();
+  for (const t of tags.value) {
+    if (t.tagId == null) continue;
+    const m = rt.getMetricByTagId(t.tagId);
+    if (m) map.set(t.tagId, m);
+  }
+  return map;
+});
+
+// --- Tag create ---
+
+const tagCreateOpen = ref(false);
+
+const handleTagCreate = async (dto: CreateTagDto) => {
+  try {
+    await api.tags.create(dto);
+    await refresh();
+    toast.add({ title: `Tag "${dto.name}" created`, color: "success" });
+  } catch {
+    toast.add({ title: "Failed to create tag", color: "error" });
+  }
 };
 
-const handleSensorUpdate = async (dto: Partial<SensorSettings>) => {
-  if (!selectedSensor.value?.sensorId) return;
+// --- Tag edit ---
+
+const tagEditOpen = ref(false);
+const selectedTag = ref<TagSettings | null>(null);
+
+const openTagEdit = (tag: TagSettings) => {
+  selectedTag.value = tag;
+  tagEditOpen.value = true;
+};
+
+const handleTagUpdate = async (dto: Partial<TagSettings>) => {
+  const id = selectedTag.value?.tagId;
+  if (!id) return;
   try {
-    await api.sensors.update(selectedSensor.value.sensorId, {
+    await api.tags.update(id, {
+      portNumber: dto.portNumber ?? undefined,
       name: dto.name,
       slug: dto.slug,
-      dataType: dto.dataType,
+      dataType: formatBackendEnum(dto.dataType),
+      registerAddress: dto.registerAddress,
+      registerType: formatBackendEnum(dto.registerType),
+      registerCount: dto.registerCount,
       unit: dto.unit,
-      portNumber: dto.portNumber,
+      inputMin: dto.inputMin,
+      inputMax: dto.inputMax,
+      outputMin: dto.outputMin,
+      outputMax: dto.outputMax,
+      offsetVal: dto.offsetVal,
+      formula: dto.formula,
+      endianness: dto.endianness,
+      deadbandThreshold: dto.deadbandThreshold,
+      uiConfig: dto.uiConfigJson ? JSON.stringify(dto.uiConfigJson) : "",
     });
     await refresh();
-    toast.add({ title: "Sensor updated", color: "success" });
+    toast.add({ title: "Tag updated", color: "success" });
   } catch {
-    toast.add({ title: "Failed to update sensor", color: "error" });
+    toast.add({ title: "Failed to update tag", color: "error" });
   }
 };
 
@@ -129,11 +202,12 @@ const formatDate = (s?: string) =>
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <div class="flex flex-col size-full overflow-hidden">
     <!-- ─── Modals ─────────────────────────────────────────────────── -->
     <DevicesEditModal
       v-model:open="editOpen"
       :device="device"
+      :connections="connections"
       @submit="handleDeviceUpdate"
     />
     <DevicesDeleteModal
@@ -141,24 +215,42 @@ const formatDate = (s?: string) =>
       :device-name="device?.name"
       @confirm="handleDeviceDelete"
     />
-    <SensorsEditModal
-      v-model:open="sensorEditOpen"
-      :sensor="selectedSensor"
-      @submit="handleSensorUpdate"
+    <TagsEditModal
+      v-model:open="tagEditOpen"
+      :tag="selectedTag"
+      @submit="handleTagUpdate"
+    />
+    <DevicesTagsModal
+      v-model:open="tagsModalOpen"
+      :tags="tags"
+      :device-name="device?.name"
+      @edit="openTagEdit"
+    />
+    <TagsCreateModal
+      v-model:open="tagCreateOpen"
+      :devices="device ? [device] : []"
+      :fixed-device-id="deviceId"
+      @submit="handleTagCreate"
     />
 
     <!-- Nav -->
     <div
       class="flex items-center justify-between px-3 py-2.5 border-b border-default shrink-0"
     >
+      <UButton
+        :icon="arrowLeftIcon"
+        variant="ghost"
+        color="neutral"
+        size="sm"
+        to="/devices"
+      />
+
+      <!-- Device name -->
+      <h1 class="text-2xl font-bold font-mono leading-tight wrap-break-word">
+        {{ device?.name ?? "—" }}
+      </h1>
+
       <div class="flex items-center gap-1">
-        <UButton
-          :icon="arrowLeftIcon"
-          variant="ghost"
-          color="neutral"
-          size="sm"
-          to="/devices"
-        />
         <UButton
           :icon="reloadIcon"
           variant="ghost"
@@ -167,79 +259,120 @@ const formatDate = (s?: string) =>
           :disabled="pending"
           @click="refresh()"
         />
+        <UBadge
+          :color="rt.isConnected ? 'success' : 'neutral'"
+          variant="subtle"
+          size="sm"
+          class="font-mono uppercase tracking-widest"
+          :class="rt.isConnected ? 'animate-pulse' : ''"
+        >
+          {{ rt.isConnected ? "live" : "offline" }}
+        </UBadge>
       </div>
-
-      <!-- Device name -->
-      <h1 class="text-2xl font-bold font-mono leading-tight wrap-break-word">
-        {{ device?.name ?? "—" }}
-      </h1>
-
-      <UBadge
-        :color="rt.isConnected ? 'success' : 'neutral'"
-        variant="subtle"
-        size="xs"
-        class="font-mono uppercase tracking-widest"
-      >
-        {{ rt.isConnected ? "live" : "offline" }}
-      </UBadge>
     </div>
 
-    <div class="flex h-full">
-      <!-- ─── Left panel: Sensors ──────────────────────────────────── -->
-      <div class="flex-3 min-w-0 flex flex-col overflow-hidden">
-        <!-- Sensors header -->
+    <div class="flex h-full min-h-0">
+      <!-- ─── Left panel: Tags ─────────────────────────────────────── -->
+      <div class="flex-3 min-w-0 h-full min-h-0 flex flex-col">
+        <!-- Tags header -->
         <div
-          class="flex items-center gap-2 px-4 py-2.5 border-b border-default shrink-0"
+          class="flex items-center gap-2 px-4 py-2.5 border-b border-default min-h-0"
         >
-          <UIcon :name="sensorIcon" class="size-4 text-muted" />
-          <span class="text-sm font-semibold">Connected Sensors</span>
-          <UBadge color="neutral" variant="outline" size="xs" class="font-mono">
-            {{ sensors.length }}
+          <UIcon :name="tagIcon" class="size-6 text-muted" />
+          <span class="text-base font-semibold">Connected Tags</span>
+          <UBadge color="neutral" variant="outline" size="sm" class="font-mono">
+            {{ tags.length }}
           </UBadge>
+          <div class="flex items-center gap-1 ml-auto">
+            <UButton
+              :leading-icon="plusIcon"
+              label="New tag"
+              size="xs"
+              variant="soft"
+              @click="tagCreateOpen = true"
+            />
+            <UDivider orientation="vertical" class="h-4 mx-1" />
+            <UButton
+              :icon="viewCardsIcon"
+              size="xs"
+              variant="ghost"
+              :color="viewMode === 'cards' ? 'primary' : 'neutral'"
+              @click="viewMode = 'cards'"
+            />
+            <UButton
+              :icon="viewTableIcon"
+              size="xs"
+              variant="ghost"
+              :color="viewMode === 'table' ? 'primary' : 'neutral'"
+              @click="viewMode = 'table'"
+            />
+            <UDivider orientation="vertical" class="h-4 mx-1" />
+            <UButton
+              :icon="expandIcon"
+              size="xs"
+              variant="ghost"
+              color="neutral"
+              @click="tagsModalOpen = true"
+            />
+          </div>
         </div>
 
-        <!-- Columns -->
-        <ScrollableWrapper>
-          <div class="grid grid-cols-3 gap-4 p-4 items-start">
-            <div
-              v-for="group in SENSOR_GROUPS"
-              :key="group.type"
-              class="flex flex-col gap-2.5"
-            >
-              <!-- Column header -->
-              <div class="flex items-center gap-2 pb-2 border-b border-default">
+        <!-- Cards: column headers -->
+        <template v-if="viewMode === 'cards'">
+          <div class="grid min-h-0 grid-cols-2 w-full gap-4 pt-4 px-4">
+            <template v-for="gr in TAG_GROUPS" :key="gr.label">
+              <div
+                class="flex items-center gap-2 pb-2 px-2 border-b border-default"
+              >
                 <span
-                  class="text-xs font-bold uppercase tracking-widest text-muted"
+                  class="text-base font-bold uppercase tracking-widest text-default/85"
                 >
-                  {{ group.label }}
+                  {{ gr.label }}
                 </span>
-                <UBadge
-                  :color="SENSOR_TYPE_COLOR[group.type]"
-                  variant="subtle"
-                  size="xs"
-                >
-                  {{ sensorsByType[group.type].length }}
+                <UBadge :color="gr.color" variant="subtle" size="sm">
+                  {{ groupTags(gr.label).length }}
                 </UBadge>
               </div>
+            </template>
+          </div>
 
-              <!-- Cards -->
-              <template v-if="sensorsByType[group.type].length > 0">
-                <DevicesSensorCard
-                  v-for="sensor in sensorsByType[group.type]"
-                  :key="sensor.sensorId"
-                  :item="sensor"
-                  @edit="openSensorEdit"
-                />
-              </template>
+          <ScrollableWrapper>
+            <div class="grid grid-cols-2 gap-4 p-4 items-start">
               <div
-                v-else
-                class="rounded-lg border border-dashed border-default/30 py-8 flex items-center justify-center"
+                v-for="group in TAG_GROUPS"
+                :key="group.label"
+                class="flex flex-col gap-2.5"
               >
-                <span class="text-xs text-muted/40">No sensors</span>
+                <template v-if="groupTags(group.label).length > 0">
+                  <DevicesTagCard
+                    v-for="tag in groupTags(group.label)"
+                    :key="tag.tagId"
+                    :item="tag"
+                    @edit="openTagEdit"
+                  />
+                </template>
+                <div
+                  v-else
+                  class="rounded-lg border border-dashed border-default/30 py-8 flex items-center justify-center"
+                >
+                  <span class="text-xs text-muted/40">No tags</span>
+                </div>
               </div>
             </div>
-          </div>
-        </ScrollableWrapper>
+          </ScrollableWrapper>
+        </template>
+
+        <!-- Table view -->
+        <template v-else>
+          <ScrollableWrapper>
+            <TagsListTable
+              :data="tags"
+              :tag-metrics="tagMetrics"
+              :hidden-columns="['device', 'updatedAt']"
+              @refresh="refresh()"
+            />
+          </ScrollableWrapper>
+        </template>
       </div>
 
       <!-- Right panel: Device details-->
@@ -252,15 +385,15 @@ const formatDate = (s?: string) =>
 
         <!-- Config rows -->
         <div class="flex flex-col gap-3">
-          <div v-if="device?.ipAddress" class="flex items-start gap-3">
+          <div v-if="connection" class="flex items-start gap-3">
             <UIcon
               :name="gatewayIcon"
-              class="size-4 text-muted shrink-0 mt-0.5"
+              class="size-6 text-muted shrink-0 mt-0.5"
             />
             <div class="flex flex-col">
-              <span class="text-xs text-muted">Address</span>
-              <span class="font-mono text-sm font-semibold"
-                >{{ device.ipAddress }}:{{ device.port }}</span
+              <span class="text-base text-muted">Address</span>
+              <span class="font-mono text-lg font-semibold"
+                >{{ connection.ipAddress }}:{{ connection.port }}</span
               >
             </div>
           </div>
@@ -268,25 +401,22 @@ const formatDate = (s?: string) =>
           <div v-if="device?.slaveId != null" class="flex items-start gap-3">
             <UIcon
               :name="binaryIcon"
-              class="size-4 text-muted shrink-0 mt-0.5"
+              class="size-6 text-muted shrink-0 mt-0.5"
             />
             <div class="flex flex-col">
-              <span class="text-xs text-muted">Slave ID</span>
-              <span class="font-mono text-sm font-semibold">{{
+              <span class="text-base text-muted">Slave ID</span>
+              <span class="font-mono text-lg font-semibold">{{
                 device.slaveId
               }}</span>
             </div>
           </div>
 
           <div class="flex items-start gap-3">
-            <UIcon
-              :name="sensorIcon"
-              class="size-4 text-muted shrink-0 mt-0.5"
-            />
+            <UIcon :name="tagIcon" class="size-6 text-muted shrink-0 mt-0.5" />
             <div class="flex flex-col">
-              <span class="text-xs text-muted">Sensors</span>
-              <span class="font-mono text-sm font-semibold">{{
-                sensors.length
+              <span class="text-base text-muted">Tags</span>
+              <span class="font-mono text-lg font-semibold">{{
+                tags.length
               }}</span>
             </div>
           </div>
@@ -294,52 +424,51 @@ const formatDate = (s?: string) =>
           <div v-if="device?.createdAt" class="flex items-start gap-3">
             <UIcon
               :name="calendarIcon"
-              class="size-4 text-muted shrink-0 mt-0.5"
+              class="size-6 text-muted shrink-0 mt-0.5"
             />
             <div class="flex flex-col">
-              <span class="text-xs text-muted">Added</span>
-              <span class="font-mono text-sm font-semibold">{{
+              <span class="text-base text-muted">Added</span>
+              <span class="font-mono text-lg font-semibold">{{
                 formatDate(device.createdAt)
               }}</span>
             </div>
           </div>
 
           <div class="flex items-start gap-3">
-            <UIcon :name="hashIcon" class="size-4 text-muted shrink-0 mt-0.5" />
+            <UIcon :name="hashIcon" class="size-6 text-muted shrink-0 mt-0.5" />
             <div class="flex flex-col">
-              <span class="text-xs text-muted">Device ID</span>
-              <span class="font-mono text-sm font-semibold">{{
+              <span class="text-base text-muted">Device ID</span>
+              <span class="font-mono text-lg font-semibold">{{
                 device?.id ?? "—"
               }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Sensor type breakdown -->
-        <div class="grid grid-cols-3 gap-2 pt-1">
+        <!-- Tag type breakdown -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
           <div
-            v-for="group in SENSOR_GROUPS"
-            :key="group.type"
-            class="flex flex-col items-center gap-0.5 rounded-md border border-default py-2"
+            v-for="group in TAG_GROUPS"
+            :key="group.label"
+            class="flex flex-col items-center gap-2 rounded-md border border-default py-4"
           >
-            <span class="text-lg font-mono font-bold">{{
-              typeCountLabel(group.type)
+            <span class="text-xl font-mono font-bold">{{
+              groupTags(group.label).length
             }}</span>
-            <UBadge
-              :color="SENSOR_TYPE_COLOR[group.type]"
-              variant="subtle"
-              size="xs"
-            >
+            <UBadge :color="group.color" variant="subtle">
               {{ group.label }}
             </UBadge>
           </div>
         </div>
 
         <!-- Actions -->
-        <div class="p-4 border-t border-default shrink-0 flex flex-col gap-2">
+        <div
+          class="p-4 border-t border-default shrink-0 grid gap-4"
+          :class="[isFluid ? 'grid-cols-2' : '']"
+        >
           <UButton
             :leading-icon="editIcon"
-            label="Edit device"
+            label="Edit"
             variant="outline"
             color="neutral"
             block
@@ -347,8 +476,8 @@ const formatDate = (s?: string) =>
           />
           <UButton
             :leading-icon="deleteIcon"
-            label="Delete device"
-            variant="outline"
+            label="Delete"
+            variant="ghost"
             color="error"
             block
             @click="deleteOpen = true"

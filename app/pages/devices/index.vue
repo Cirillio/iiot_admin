@@ -21,6 +21,14 @@ const { data, pending, refresh } = await useAsyncData(
   { immediate: true },
 );
 
+const { data: connectionsData } = await useAsyncData(
+  "connections",
+  () => api.connections.list(),
+  { immediate: true },
+);
+
+const connections = computed(() => connectionsData.value ?? []);
+
 // --- Filters ---
 
 const search = ref("");
@@ -124,12 +132,17 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col overflow-hidden">
+  <div class="flex size-full flex-col overflow-hidden">
     <!-- Modals -->
-    <DevicesCreateModal v-model:open="createOpen" @submit="handleCreate" />
+    <DevicesCreateModal
+      v-model:open="createOpen"
+      :connections="connections"
+      @submit="handleCreate"
+    />
     <DevicesEditModal
       v-model:open="editOpen"
       :device="editTarget"
+      :connections="connections"
       @submit="handleEdit"
     />
     <DevicesDeleteModal
@@ -192,8 +205,7 @@ const handleDelete = async () => {
         v-model="search"
         :leading-icon="searchIcon"
         placeholder="Name or IP…"
-        size="sm"
-        class="w-48"
+        class="max-w-60 w-full"
         :ui="{ trailing: 'pr-1' }"
       >
         <template v-if="search" #trailing>

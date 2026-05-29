@@ -4,15 +4,17 @@ type Schemas = components["schemas"];
 
 // --- Enums ---
 
-export type SensorDataType = Schemas["SensorDataType"];
+export type TagDataType = Schemas["TagDataType"];
 export type ModbusRegisterType = Schemas["ModbusRegisterType"];
+export type ModbusEndianness = Schemas["ModbusEndianness"];
 export type ServiceStatus = Schemas["ServiceStatus"];
 
-export const SENSOR_DATA_TYPE = {
-  ANALOG: "ANALOG",
+export const TAG_DATA_TYPE = {
+  ANALOG_RAW: "ANALOG_RAW",
+  ANALOG_PHYSICAL: "ANALOG_PHYSICAL",
   DIGITAL: "DIGITAL",
   VIRTUAL: "VIRTUAL",
-} as const satisfies Record<SensorDataType, SensorDataType>;
+} as const satisfies Record<TagDataType, TagDataType>;
 
 export const MODBUS_REGISTER_TYPE = {
   INPUT_REGISTER: "INPUT_REGISTER",
@@ -21,11 +23,19 @@ export const MODBUS_REGISTER_TYPE = {
   COIL: "COIL",
 } as const satisfies Record<ModbusRegisterType, ModbusRegisterType>;
 
-export const SENSOR_TYPE_COLOR: Record<
-  SensorDataType,
+export const MODBUS_ENDIANNESS = {
+  BIG_ENDIAN: "BIG_ENDIAN",
+  LITTLE_ENDIAN: "LITTLE_ENDIAN",
+  WORD_SWAP: "WORD_SWAP",
+  BYTE_WORD_SWAP: "BYTE_WORD_SWAP",
+} as const satisfies Record<ModbusEndianness, ModbusEndianness>;
+
+export const TAG_TYPE_COLOR: Record<
+  TagDataType,
   "info" | "success" | "warning"
 > = {
-  ANALOG: "info",
+  ANALOG_RAW: "info",
+  ANALOG_PHYSICAL: "info",
   DIGITAL: "success",
   VIRTUAL: "warning",
 };
@@ -41,23 +51,32 @@ export const SERVICE_STATUS = {
 // --- Domain models ---
 
 export type Device = Schemas["Device"];
-export type SensorSettings = Schemas["SensorSettings"] & {
-  registerAddress?: number;
-  registerType?: ModbusRegisterType;
-  registerCount?: number;
-};
-export type SensorUiConfig = Schemas["SensorUiConfig"];
+export type TagSettings = Schemas["TagSettings"];
+export type TagUiConfig = Schemas["TagUiConfig"];
+export type ModbusConnection = Schemas["ModbusConnection"];
 export type SystemConfig = Schemas["SystemConfig"];
 export type SystemStatus = Schemas["SystemStatus"];
 
 // --- Dashboard DTOs ---
 
 export type DashboardDevice = Schemas["DashboardDeviceDTO"];
-export type DashboardSensor = Schemas["DashboardSensorDTO"];
+export type DashboardTag = Schemas["DashboardTagDTO"];
 
 // --- Request DTOs ---
 
 export type CreateDeviceDto = Schemas["CreateDeviceDto"];
 export type UpdateDeviceDto = Schemas["UpdateDeviceDto"];
-export type CreateSensorDto = Schemas["CreateSensorDto"];
-export type UpdateSensorDto = Schemas["UpdateSensorDto"];
+export type CreateTagDto = Schemas["CreateTagDto"];
+export type UpdateTagDto = Schemas["UpdateTagDto"];
+export type CreateConnectionDto = Schemas["CreateConnectionDto"];
+export type UpdateConnectionDto = Schemas["UpdateConnectionDto"];
+export type WriteCommandDto = Schemas["WriteCommandDto"];
+
+// --- Supervisory Control (ручные типы: SignalR-контракт и ответ write вне OpenAPI-схемы) ---
+
+export type {
+  CommandStatus,
+  DeviceCommand,
+  CommandStatusEvent,
+} from "./api";
+export { COMMAND_STATUS } from "./api";

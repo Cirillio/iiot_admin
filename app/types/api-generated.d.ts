@@ -4,6 +4,192 @@
  */
 
 export interface paths {
+    "/api/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ModbusConnection"][];
+                        "application/json": components["schemas"]["ModbusConnection"][];
+                        "text/json": components["schemas"]["ModbusConnection"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateConnectionDto"];
+                    "text/json": components["schemas"]["CreateConnectionDto"];
+                    "application/*+json": components["schemas"]["CreateConnectionDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number;
+                        "application/json": number;
+                        "text/json": number;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ModbusConnection"];
+                        "application/json": components["schemas"]["ModbusConnection"];
+                        "text/json": components["schemas"]["ModbusConnection"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateConnectionDto"];
+                    "text/json": components["schemas"]["UpdateConnectionDto"];
+                    "application/*+json": components["schemas"]["UpdateConnectionDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/control/write": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["WriteCommandDto"];
+                    "text/json": components["schemas"]["WriteCommandDto"];
+                    "application/*+json": components["schemas"]["WriteCommandDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices": {
         parameters: {
             query?: never;
@@ -163,7 +349,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    sensorId?: number;
+                    tagId?: number;
                     from?: string;
                     to?: string;
                 };
@@ -182,192 +368,6 @@ export interface paths {
                         "text/plain": unknown[][];
                         "application/json": unknown[][];
                         "text/json": unknown[][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sensors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["SensorSettings"][];
-                        "application/json": components["schemas"]["SensorSettings"][];
-                        "text/json": components["schemas"]["SensorSettings"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateSensorDto"];
-                    "text/json": components["schemas"]["CreateSensorDto"];
-                    "application/*+json": components["schemas"]["CreateSensorDto"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": number;
-                        "application/json": number;
-                        "text/json": number;
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sensors/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["SensorSettings"];
-                        "application/json": components["schemas"]["SensorSettings"];
-                        "text/json": components["schemas"]["SensorSettings"];
-                    };
-                };
-            };
-        };
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateSensorDto"];
-                    "text/json": components["schemas"]["UpdateSensorDto"];
-                    "application/*+json": components["schemas"]["UpdateSensorDto"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        post?: never;
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/sensors/device/{deviceId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    deviceId: number;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["SensorSettings"][];
-                        "application/json": components["schemas"]["SensorSettings"][];
-                        "text/json": components["schemas"]["SensorSettings"][];
                     };
                 };
             };
@@ -477,20 +477,216 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TagSettings"][];
+                        "application/json": components["schemas"]["TagSettings"][];
+                        "text/json": components["schemas"]["TagSettings"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTagDto"];
+                    "text/json": components["schemas"]["CreateTagDto"];
+                    "application/*+json": components["schemas"]["CreateTagDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": number;
+                        "application/json": number;
+                        "text/json": number;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TagSettings"];
+                        "application/json": components["schemas"]["TagSettings"];
+                        "text/json": components["schemas"]["TagSettings"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTagDto"];
+                    "text/json": components["schemas"]["UpdateTagDto"];
+                    "application/*+json": components["schemas"]["UpdateTagDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags/device/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    deviceId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TagSettings"][];
+                        "application/json": components["schemas"]["TagSettings"][];
+                        "text/json": components["schemas"]["TagSettings"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        CreateDeviceDto: {
-            name?: string | null;
+        CreateConnectionDto: {
             ipAddress?: string | null;
             /** Format: int32 */
             port?: number;
+            description?: string | null;
+        };
+        CreateDeviceDto: {
+            name?: string | null;
+            /** Format: int32 */
+            connectionId?: number;
             /** Format: int32 */
             slaveId?: number;
+            useGroupPolling?: boolean;
+            /** Format: int32 */
+            maxRegisterSpan?: number;
             isActive?: boolean;
+            /** Format: int32 */
+            maxBitSpan?: number;
         };
-        CreateSensorDto: {
+        CreateTagDto: {
             /** Format: int32 */
             deviceId?: number;
             /** Format: int32 */
@@ -516,35 +712,44 @@ export interface components {
             offsetVal?: number;
             formula?: string | null;
             uiConfig?: string | null;
+            endianness?: string | null;
+            /** Format: double */
+            deadbandThreshold?: number | null;
+            rawDataType?: string | null;
         };
         DashboardDeviceDTO: {
             /** Format: int32 */
             id?: number;
             name?: string | null;
+            /** Format: int32 */
+            connectionId?: number;
             ipAddress?: string | null;
             /** Format: int32 */
             port?: number;
             /** Format: int32 */
             slaveId?: number;
+            useGroupPolling?: boolean;
+            /** Format: int32 */
+            maxRegisterSpan?: number;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
-            sensors?: components["schemas"]["DashboardSensorDTO"][] | null;
+            tags?: components["schemas"]["DashboardTagDTO"][] | null;
             /** Format: int32 */
-            totalSensors?: number;
+            totalTags?: number;
         };
-        DashboardSensorDTO: {
+        DashboardTagDTO: {
             /** Format: int32 */
-            sensorId?: number;
+            tagId?: number;
             /** Format: int32 */
             deviceId?: number;
             /** Format: int32 */
             portNumber?: number;
             name?: string | null;
             slug?: string | null;
-            sensorDataType?: components["schemas"]["SensorDataType"];
+            dataType?: components["schemas"]["TagDataType"];
             unit?: string | null;
-            uiConfigJson?: components["schemas"]["SensorUiConfig"];
+            uiConfigJson?: components["schemas"]["TagUiConfig"];
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -552,70 +757,36 @@ export interface components {
             /** Format: int32 */
             id?: number;
             name?: string | null;
-            sensors?: components["schemas"]["SensorSettings"][] | null;
+            tags?: components["schemas"]["TagSettings"][] | null;
             /** Format: int32 */
-            totalSensors?: number;
-            ipAddress?: string | null;
+            totalTags?: number;
             /** Format: int32 */
-            port?: number;
+            connectionId?: number;
             /** Format: int32 */
             slaveId?: number;
+            useGroupPolling?: boolean;
+            /** Format: int32 */
+            maxRegisterSpan?: number;
+            /** Format: int32 */
+            maxBitSpan?: number;
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
         };
+        ModbusConnection: {
+            /** Format: int32 */
+            id?: number;
+            ipAddress?: string | null;
+            /** Format: int32 */
+            port?: number;
+            description?: string | null;
+        };
+        /** @enum {string} */
+        ModbusEndianness: "BIG_ENDIAN" | "LITTLE_ENDIAN" | "WORD_SWAP" | "BYTE_WORD_SWAP";
         /** @enum {string} */
         ModbusRegisterType: "INPUT_REGISTER" | "HOLDING_REGISTER" | "DISCRETE_INPUT" | "COIL";
         /** @enum {string} */
-        SensorDataType: "ANALOG" | "DIGITAL" | "VIRTUAL";
-        SensorSettings: {
-            /** Format: int32 */
-            sensorId?: number;
-            /** Format: int32 */
-            deviceId?: number | null;
-            /** Format: int32 */
-            portNumber?: number | null;
-            /** Format: int32 */
-            registerAddress?: number;
-            registerType?: components["schemas"]["ModbusRegisterType"];
-            /** Format: int32 */
-            registerCount?: number;
-            name?: string | null;
-            slug?: string | null;
-            dataType?: components["schemas"]["SensorDataType"];
-            unit?: string | null;
-            /** Format: double */
-            inputMin?: number;
-            /** Format: double */
-            inputMax?: number;
-            /** Format: double */
-            outputMin?: number;
-            /** Format: double */
-            outputMax?: number;
-            /** Format: double */
-            offsetVal?: number;
-            formula?: string | null;
-            uiConfigJson?: components["schemas"]["SensorUiConfig"];
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        SensorUiConfig: {
-            color?: string | null;
-            /** Format: double */
-            minCritical?: number | null;
-            /** Format: double */
-            minWarning?: number | null;
-            /** Format: double */
-            maxWarning?: number | null;
-            /** Format: double */
-            maxCritical?: number | null;
-            /** Format: double */
-            digitalWarning?: number | null;
-            /** Format: double */
-            digitalCritical?: number | null;
-            labelZero?: string | null;
-            labelOne?: string | null;
-        };
+        RawDataType: "INT16" | "U_INT16" | "INT32" | "U_INT32" | "FLOAT32" | "FLOAT64";
         /** @enum {string} */
         ServiceStatus: "ONLINE" | "OFFLINE" | "DEGRADED" | "CRITICAL_ERROR" | "MAINTENANCE";
         SystemConfig: {
@@ -635,8 +806,6 @@ export interface components {
             deadbandThreshold?: number;
             /** Format: int32 */
             dataHeartbeatSec?: number;
-            /** Format: int32 */
-            uiUpdateIntervalMs?: number;
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -649,16 +818,80 @@ export interface components {
             /** Format: date-time */
             lastSync?: string;
         };
-        UpdateDeviceDto: {
+        /** @enum {string} */
+        TagDataType: "ANALOG_RAW" | "ANALOG_PHYSICAL" | "DIGITAL" | "VIRTUAL";
+        TagSettings: {
+            /** Format: int32 */
+            tagId?: number;
+            /** Format: int32 */
+            deviceId?: number | null;
+            /** Format: int32 */
+            portNumber?: number | null;
+            /** Format: int32 */
+            registerAddress?: number;
+            registerType?: components["schemas"]["ModbusRegisterType"];
+            /** Format: int32 */
+            registerCount?: number;
+            rawDataType?: components["schemas"]["RawDataType"];
+            endianness?: components["schemas"]["ModbusEndianness"];
             name?: string | null;
+            slug?: string | null;
+            dataType?: components["schemas"]["TagDataType"];
+            unit?: string | null;
+            /** Format: double */
+            inputMin?: number;
+            /** Format: double */
+            inputMax?: number;
+            /** Format: double */
+            outputMin?: number;
+            /** Format: double */
+            outputMax?: number;
+            /** Format: double */
+            offsetVal?: number;
+            /** Format: double */
+            deadbandThreshold?: number | null;
+            formula?: string | null;
+            uiConfigJson?: components["schemas"]["TagUiConfig"];
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        TagUiConfig: {
+            color?: string | null;
+            /** Format: double */
+            minCritical?: number | null;
+            /** Format: double */
+            minWarning?: number | null;
+            /** Format: double */
+            maxWarning?: number | null;
+            /** Format: double */
+            maxCritical?: number | null;
+            /** Format: double */
+            digitalWarning?: number | null;
+            /** Format: double */
+            digitalCritical?: number | null;
+            labelZero?: string | null;
+            labelOne?: string | null;
+        };
+        UpdateConnectionDto: {
             ipAddress?: string | null;
             /** Format: int32 */
             port?: number;
+            description?: string | null;
+        };
+        UpdateDeviceDto: {
+            name?: string | null;
+            /** Format: int32 */
+            connectionId?: number;
             /** Format: int32 */
             slaveId?: number;
+            useGroupPolling?: boolean;
+            /** Format: int32 */
+            maxRegisterSpan?: number;
             isActive?: boolean;
+            /** Format: int32 */
+            maxBitSpan?: number;
         };
-        UpdateSensorDto: {
+        UpdateTagDto: {
             /** Format: int32 */
             portNumber?: number;
             name?: string | null;
@@ -682,6 +915,17 @@ export interface components {
             offsetVal?: number;
             formula?: string | null;
             uiConfig?: string | null;
+            endianness?: string | null;
+            /** Format: double */
+            deadbandThreshold?: number | null;
+            rawDataType?: string | null;
+        };
+        WriteCommandDto: {
+            /** Format: int32 */
+            tagId?: number;
+            /** Format: double */
+            value?: number;
+            operatorId?: string | null;
         };
     };
     responses: never;

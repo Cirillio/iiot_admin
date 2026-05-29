@@ -40,8 +40,10 @@ export const useSignalR = () => {
       );
       if (entityType === "DEVICE") {
         refreshNuxtData(["devices", `device-${entityId}`]);
-      } else if (entityType === "SENSOR") {
-        refreshNuxtData("sensors");
+      } else if (entityType === "TAG") {
+        refreshNuxtData("tags");
+      } else if (entityType === "CONNECTION") {
+        refreshNuxtData("connections");
       }
     });
 

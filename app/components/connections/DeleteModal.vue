@@ -3,7 +3,7 @@ import { deleteIcon } from "~/core/icons-map";
 
 const props = defineProps<{
   open: boolean;
-  sensorName: string | null | undefined;
+  connectionLabel: string | null | undefined;
 }>();
 
 const emits = defineEmits<{
@@ -17,15 +17,22 @@ const emits = defineEmits<{
     <template #content>
       <div class="flex flex-col gap-6 p-5">
         <div class="flex flex-col gap-1">
-          <span class="font-semibold text-base">Delete sensor</span>
+          <span class="font-semibold text-base">Delete connection</span>
           <span class="text-sm text-muted">
             Are you sure you want to delete
-            <span class="font-mono text-default">{{ sensorName ?? "this sensor" }}</span>?
-            This action cannot be undone.
+            <span class="font-mono text-default">{{
+              connectionLabel ?? "this connection"
+            }}</span>? Devices bound to it will lose their endpoint. This action
+            cannot be undone.
           </span>
         </div>
         <div class="flex justify-end gap-2">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="emits('update:open', false)" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            @click="emits('update:open', false)"
+          />
           <UButton
             label="Delete"
             color="error"

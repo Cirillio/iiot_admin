@@ -2,27 +2,30 @@
 import { deleteIcon, editIcon } from "~/core/icons-map";
 import type { Metric } from "~/types/api";
 import {
-  type SensorSettings,
-  SENSOR_DATA_TYPE,
-  SENSOR_TYPE_COLOR,
+  type Device,
+  type TagSettings,
+  TAG_DATA_TYPE,
+  TAG_TYPE_COLOR,
 } from "~/types/models";
 
 interface Props {
-  data: SensorSettings[];
-  sensorMetrics: Map<number, Metric>;
+  data: TagSettings[];
+  devices?: Device[];
+  tagMetrics: Map<number, Metric>;
+  hiddenColumns?: string[];
 }
 
 const props = defineProps<Props>();
 
 const emits = defineEmits<{
-  (e: "delete:sensor", value: number | undefined): void;
+  (e: "delete:tag", value: number | undefined): void;
   (e: "refresh"): void;
 }>();
 
 const api = useApi();
 const toast = useToast();
 
-const columns = [
+const ALL_COLUMNS = [
   { accessorKey: "name", header: "Name / Slug" },
   { accessorKey: "dataType", header: "Type" },
   { id: "device", header: "Device / Port" },
@@ -31,65 +34,85 @@ const columns = [
   { id: "actions", header: "Actions" },
 ];
 
-const getSensorMetricValue = (sensorId: number) => {
-  const val = props.sensorMetrics.get(sensorId)?.value;
+const columns = computed(() =>
+  props.hiddenColumns?.length
+    ? ALL_COLUMNS.filter(
+        (c) => !props.hiddenColumns!.includes((c as any).accessorKey ?? c.id),
+      )
+    : ALL_COLUMNS,
+);
+
+const getTagMetricValue = (tagId: number) => {
+  const val = props.tagMetrics.get(tagId)?.value;
   if (val === undefined) return null;
   if (val === 1 || val === 0) return val.toFixed(1);
   return val?.toFixed(3);
 };
 
-const targetSensor = ref<SensorSettings | null>(null);
+const targetTag = ref<TagSettings | null>(null);
 const deleteModalOpen = ref(false);
 const editModalOpen = ref(false);
 
-const openDelete = (sensor: SensorSettings) => {
-  targetSensor.value = sensor;
+const openDelete = (tag: TagSettings) => {
+  targetTag.value = tag;
   deleteModalOpen.value = true;
 };
 
-const openEdit = (sensor: SensorSettings) => {
-  targetSensor.value = sensor;
+const openEdit = (tag: TagSettings) => {
+  targetTag.value = tag;
   editModalOpen.value = true;
 };
 
 const handleDeleteConfirm = () => {
-  emits("delete:sensor", targetSensor.value?.sensorId);
+  emits("delete:tag", targetTag.value?.tagId);
   deleteModalOpen.value = false;
-  targetSensor.value = null;
+  targetTag.value = null;
 };
 
-const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
-  const id = targetSensor.value?.sensorId;
+const handleEditSubmit = async (dto: Partial<TagSettings>) => {
+  const id = targetTag.value?.tagId;
   if (!id) return;
   try {
-    await api.sensors.update(id, {
+    await api.tags.update(id, {
+      portNumber: dto.portNumber ?? undefined,
       name: dto.name,
       slug: dto.slug,
-      dataType: dto.dataType,
+      dataType: formatBackendEnum(dto.dataType),
+      registerAddress: dto.registerAddress,
+      registerType: formatBackendEnum(dto.registerType),
+      registerCount: dto.registerCount,
       unit: dto.unit,
-      portNumber: dto.portNumber,
+      inputMin: dto.inputMin,
+      inputMax: dto.inputMax,
+      outputMin: dto.outputMin,
+      outputMax: dto.outputMax,
+      offsetVal: dto.offsetVal,
+      formula: dto.formula,
+      endianness: dto.endianness,
+      deadbandThreshold: dto.deadbandThreshold,
+      uiConfig: dto.uiConfigJson ? JSON.stringify(dto.uiConfigJson) : "",
     });
-    toast.add({ title: "Sensor updated", color: "success" });
+    toast.add({ title: "Tag updated", color: "success" });
     emits("refresh");
   } catch {
-    toast.add({ title: "Failed to update sensor", color: "error" });
+    toast.add({ title: "Failed to update tag", color: "error" });
   } finally {
     editModalOpen.value = false;
-    targetSensor.value = null;
+    targetTag.value = null;
   }
 };
 </script>
 
 <template>
-  <SensorsDeleteModal
+  <TagsDeleteModal
     :open="deleteModalOpen"
-    :sensor-name="targetSensor?.name"
+    :tag-name="targetTag?.name"
     @update:open="deleteModalOpen = $event"
     @confirm="handleDeleteConfirm"
   />
-  <SensorsEditModal
+  <TagsEditModal
     :open="editModalOpen"
-    :sensor="targetSensor"
+    :tag="targetTag"
     @update:open="editModalOpen = $event"
     @submit="handleEditSubmit"
   />
@@ -108,7 +131,7 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
         <span>{{ row.index + 1 }}</span>
         <div class="flex flex-col gap-0.5">
           <NuxtLink
-            :to="'/sensor/' + row.original.slug"
+            :to="'/tags/' + row.original.tagId"
             class="font-semibold text-default w-fit hover:text-tertiary font-mono text-sm"
             >{{ row.original.name ?? "—" }}</NuxtLink
           >
@@ -122,8 +145,8 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
     <template #dataType-cell="{ row }">
       <UBadge
         v-if="row.original.dataType"
-        :color="SENSOR_TYPE_COLOR[row.original.dataType]"
-        :label="SENSOR_DATA_TYPE[row.original.dataType]"
+        :color="TAG_TYPE_COLOR[row.original.dataType]"
+        :label="TAG_DATA_TYPE[row.original.dataType]"
         variant="soft"
         size="sm"
       />
@@ -131,13 +154,10 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
 
     <template #device-cell="{ row }">
       <div class="flex flex-col gap-0.5 font-mono text-xs">
-        <span
-          >dev
-          <span class="font-semibold">{{
-            row.original.deviceId ?? "—"
-          }}</span></span
-        >
-        <span class="text-muted"
+        <span class="font-semibold truncate">{{
+          devices?.find((i) => i.id == row.original.deviceId)?.name ?? "—"
+        }}</span>
+        <span class="text-muted truncate"
           >port
           <span class="font-semibold">{{
             row.original.portNumber ?? "—"
@@ -148,7 +168,7 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
 
     <template #unit-cell="{ row }">
       <div class="flex items-center gap-2">
-        <SensorsValSetupsPopover
+        <TagsValSetupsPopover
           :item="{
             inputMin: row.original.inputMin,
             inputMax: row.original.inputMax,
@@ -161,12 +181,12 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
         <div class="flex flex-col items-start">
           <span
             v-if="
-              row.original.sensorId !== undefined &&
-              getSensorMetricValue(row.original.sensorId)
+              row.original.tagId !== undefined &&
+              getTagMetricValue(row.original.tagId)
             "
             class="text-xs text-tertiary"
           >
-            {{ getSensorMetricValue(row.original.sensorId) ?? "-" }}
+            {{ getTagMetricValue(row.original.tagId) ?? "-" }}
           </span>
           <span class="text-sm">{{ row.original.unit || "—" }}</span>
         </div>
@@ -174,13 +194,12 @@ const handleEditSubmit = async (dto: Partial<SensorSettings>) => {
     </template>
 
     <template #updatedAt-cell="{ row }">
-      <span class="text-xs text-muted">
-        {{
-          row.original.updatedAt
-            ? new Date(row.original.updatedAt).toLocaleString().replace(",", "")
-            : "—"
-        }}
+      <span v-if="row.original.updatedAt" class="text-xs text-muted">
+        {{ new Date(row.original.updatedAt).toLocaleString().split(",")[0] }}
+        <br />
+        {{ new Date(row.original.updatedAt).toLocaleString().split(",")[1] }}
       </span>
+      <span v-else class="text-xs text-muted"> — </span>
     </template>
 
     <template #actions-cell="{ row }">

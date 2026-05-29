@@ -7,11 +7,11 @@ const route = useRoute();
   <UApp>
     <u-container
       :class="[
-        'mx-auto w-full overflow-y-hidden h-dvh',
-        isFluid ? 'max-w-none' : 'max-w-5xl',
+        'mx-auto w-full  overflow-y-hidden transition-all duration-300 ease-in-out h-dvh',
+        isFluid ? 'max-w-full' : 'max-w-5xl',
       ]"
     >
-      <div class="border-x bg-default/85 h-full flex flex-col border-accented">
+      <div class="h-full py-2 flex gap-2 w-full flex-col">
         <app-toolbar />
         <NuxtLayout>
           <NuxtErrorBoundary>
