@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import type { AlertLevel } from "~/types/api";
 
-export type NotificationLevel = AlertLevel;
+// SUCCESS — локальный уровень UI (зелёный тост для успешных операций); в бэкенд-AlertLevel его нет.
+export type NotificationLevel = AlertLevel | "SUCCESS";
 
 export interface Notification {
   id: string;
@@ -12,21 +13,31 @@ export interface Notification {
   read: boolean;
 }
 
-const TOAST_COLOR_MAP: Record<NotificationLevel, "error" | "warning" | "info"> =
+const TOAST_COLOR_MAP: Record<NotificationLevel, "error" | "warning" | "info" | "success"> =
   {
     CRITICAL: "error",
     WARNING: "warning",
     INFO: "info",
+    SUCCESS: "success",
   };
 
 const TOAST_DURATION_MAP: Record<NotificationLevel, number> = {
   CRITICAL: 8000,
   WARNING: 5000,
   INFO: 3000,
+  SUCCESS: 3000,
+};
+
+const LOG_STATUS_MAP: Record<NotificationLevel, "error" | "warning" | "info"> = {
+  CRITICAL: "error",
+  WARNING: "warning",
+  INFO: "info",
+  SUCCESS: "info",
 };
 
 export const useNotificationsStore = defineStore("Notifications", () => {
   const toast = useToast();
+  const appLogger = useAppLoggerStore();
 
   const items = ref<Notification[]>([]);
 
@@ -57,6 +68,9 @@ export const useNotificationsStore = defineStore("Notifications", () => {
       color: TOAST_COLOR_MAP[level],
       duration: TOAST_DURATION_MAP[level],
     });
+
+    // Каждое уведомление попадает в журнал — попап показывает только последние.
+    appLogger.log[LOG_STATUS_MAP[level]](title, message);
   };
 
   const markAllRead = () => items.value.forEach((n) => (n.read = true));

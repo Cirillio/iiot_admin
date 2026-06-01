@@ -13,7 +13,7 @@ definePageMeta({
 
 const { isFluid } = useLayout();
 const api = useApi();
-const toast = useToast();
+const notifications = useNotificationsStore();
 
 const { data, pending, refresh } = await useAsyncData(
   "connections",
@@ -43,9 +43,9 @@ const handleCreate = async (dto: CreateConnectionDto) => {
   try {
     await api.connections.create(dto);
     await refresh();
-    toast.add({ title: `Connection ${dto.ipAddress} created`, color: "success" });
+    notifications.add("Connection created", `${dto.ipAddress} added`, "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to create connection", color: "error" });
+    notifications.add("Create failed", "Could not create connection", "CRITICAL");
   }
 };
 
@@ -65,9 +65,9 @@ const handleEdit = async (dto: UpdateConnectionDto) => {
   try {
     await api.connections.update(id, dto);
     await refresh();
-    toast.add({ title: "Connection updated", color: "success" });
+    notifications.add("Connection updated", editTarget.value?.ipAddress ?? "", "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to update connection", color: "error" });
+    notifications.add("Update failed", "Could not update connection", "CRITICAL");
   }
 };
 
@@ -85,14 +85,12 @@ const handleDelete = async () => {
   const id = deleteTarget.value?.id;
   if (!id) return;
   try {
+    const ip = deleteTarget.value?.ipAddress;
     await api.connections.delete(id);
     await refresh();
-    toast.add({
-      title: `Connection ${deleteTarget.value?.ipAddress} deleted`,
-      color: "success",
-    });
+    notifications.add("Connection deleted", `${ip} removed`, "WARNING");
   } catch {
-    toast.add({ title: "Failed to delete connection", color: "error" });
+    notifications.add("Delete failed", "Could not delete connection", "CRITICAL");
   }
 };
 </script>

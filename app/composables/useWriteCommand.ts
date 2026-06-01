@@ -1,5 +1,3 @@
-import { COMMAND_STATUS } from "~/types/api";
-
 /** Пока нет слоя аутентификации — оператор-заглушка для аудита. TODO: брать из auth-токена. */
 const OPERATOR_ID = "usr_admin_01";
 
@@ -22,18 +20,8 @@ export const useWriteCommand = (tagId: number) => {
   const isInFlight = computed(() => commands.isInFlight(status.value));
   const errorMessage = computed(() => entry.value?.errorMessage ?? null);
 
-  // Тосты привязаны к конкретному действию оператора (Канал 2 ТЗ).
-  watch(status, (s) => {
-    if (s === COMMAND_STATUS.SUCCESS) {
-      notifications.add("Команда выполнена", `Тег ${tagId}: значение записано`, "INFO");
-    } else if (s === COMMAND_STATUS.FAILED) {
-      notifications.add(
-        "Ошибка записи",
-        errorMessage.value ?? "Прибор не подтвердил запись",
-        "CRITICAL",
-      );
-    }
-  });
+  // Уведомления о жизненном цикле команды (SUCCESS/FAILED) поднимает commands store
+  // глобально — здесь дублировать не нужно, иначе оператор получит двойной тост.
 
   async function send(value: number) {
     try {

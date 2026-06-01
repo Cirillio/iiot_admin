@@ -69,16 +69,18 @@ const paginatedTags = computed(() =>
 
 const showPagination = computed(() => filteredTags.value.length > PAGE_SIZE);
 
-const toast = useToast();
+const notifications = useNotificationsStore();
 
 const handleDelete = async (id: number | undefined) => {
   if (id === undefined) return;
-  await api.tags.delete(id);
-  toast.add({
-    title: `Tag "${data.value?.find((v) => v.tagId === id)?.name}" deleted`,
-    color: "error",
-  });
-  await refresh();
+  const name = data.value?.find((v) => v.tagId === id)?.name;
+  try {
+    await api.tags.delete(id);
+    notifications.add("Tag deleted", `"${name}" removed`, "WARNING");
+    await refresh();
+  } catch {
+    notifications.add("Delete failed", `Could not delete "${name}"`, "CRITICAL");
+  }
 };
 
 // --- Create ---
@@ -89,9 +91,9 @@ const handleCreate = async (dto: CreateTagDto) => {
   try {
     await api.tags.create(dto);
     await refresh();
-    toast.add({ title: `Tag "${dto.name}" created`, color: "success" });
+    notifications.add("Tag created", `"${dto.name}" added`, "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to create tag", color: "error" });
+    notifications.add("Create failed", "Could not create tag", "CRITICAL");
   }
 };
 </script>

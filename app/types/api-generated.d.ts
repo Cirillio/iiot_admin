@@ -732,6 +732,9 @@ export interface components {
             /** Format: int32 */
             maxRegisterSpan?: number;
             isActive?: boolean;
+            isOnline?: boolean;
+            /** Format: date-time */
+            lastSeen?: string | null;
             /** Format: date-time */
             createdAt?: string;
             tags?: components["schemas"]["DashboardTagDTO"][] | null;
@@ -770,6 +773,10 @@ export interface components {
             /** Format: int32 */
             maxBitSpan?: number;
             isActive?: boolean;
+            isOnline?: boolean;
+            /** Format: date-time */
+            lastSeen?: string | null;
+            lastConnError?: string | null;
             /** Format: date-time */
             createdAt?: string;
         };

@@ -13,7 +13,7 @@ definePageMeta({
 });
 
 const api = useApi();
-const toast = useToast();
+const notifications = useNotificationsStore();
 
 const { data, pending, refresh } = useAsyncData(
   "system-config",
@@ -61,9 +61,9 @@ const handleSave = async () => {
   try {
     await api.system.updateConfig({ id: data.value?.id, ...form });
     await refresh();
-    toast.add({ title: "Configuration saved", color: "success" });
+    notifications.add("Settings saved", "System configuration updated", "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to save configuration", color: "error" });
+    notifications.add("Save failed", "Could not save configuration", "CRITICAL");
   } finally {
     saving.value = false;
   }

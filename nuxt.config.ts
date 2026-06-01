@@ -1,4 +1,16 @@
 export default defineNuxtConfig({
+  app: {
+    head: {
+      link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon.png",
+        },
+      ],
+    },
+  },
+
   compatibilityDate: "2025-07-15",
 
   // Убираем devtools пока не заведемся
@@ -34,7 +46,6 @@ export default defineNuxtConfig({
   routeRules: {
     "/**": {
       ssr: false,
-  
     },
   },
 

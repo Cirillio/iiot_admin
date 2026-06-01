@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { deleteIcon, editIcon } from "~/core/icons-map";
+import { deleteIcon, editIcon, paletteIcon } from "~/core/icons-map";
 import type { Metric } from "~/types/api";
 import {
   type Device,
@@ -23,7 +23,7 @@ const emits = defineEmits<{
 }>();
 
 const api = useApi();
-const toast = useToast();
+const notifications = useNotificationsStore();
 
 const ALL_COLUMNS = [
   { accessorKey: "name", header: "Name / Slug" },
@@ -52,6 +52,7 @@ const getTagMetricValue = (tagId: number) => {
 const targetTag = ref<TagSettings | null>(null);
 const deleteModalOpen = ref(false);
 const editModalOpen = ref(false);
+const appearanceModalOpen = ref(false);
 
 const openDelete = (tag: TagSettings) => {
   targetTag.value = tag;
@@ -63,6 +64,11 @@ const openEdit = (tag: TagSettings) => {
   editModalOpen.value = true;
 };
 
+const openAppearance = (tag: TagSettings) => {
+  targetTag.value = tag;
+  appearanceModalOpen.value = true;
+};
+
 const handleDeleteConfirm = () => {
   emits("delete:tag", targetTag.value?.tagId);
   deleteModalOpen.value = false;
@@ -70,32 +76,36 @@ const handleDeleteConfirm = () => {
 };
 
 const handleEditSubmit = async (dto: Partial<TagSettings>) => {
-  const id = targetTag.value?.tagId;
-  if (!id) return;
+  const current = targetTag.value;
+  const id = current?.tagId;
+  if (!id || !current) return;
   try {
-    await api.tags.update(id, {
-      portNumber: dto.portNumber ?? undefined,
-      name: dto.name,
-      slug: dto.slug,
-      dataType: formatBackendEnum(dto.dataType),
-      registerAddress: dto.registerAddress,
-      registerType: formatBackendEnum(dto.registerType),
-      registerCount: dto.registerCount,
-      unit: dto.unit,
-      inputMin: dto.inputMin,
-      inputMax: dto.inputMax,
-      outputMin: dto.outputMin,
-      outputMax: dto.outputMax,
-      offsetVal: dto.offsetVal,
-      formula: dto.formula,
-      endianness: dto.endianness,
-      deadbandThreshold: dto.deadbandThreshold,
-      uiConfig: dto.uiConfigJson ? JSON.stringify(dto.uiConfigJson) : "",
-    });
-    toast.add({ title: "Tag updated", color: "success" });
+    // Полная замена: шлём весь тег с правками формы; uiConfig сохраняется маппером.
+    await api.tags.update(
+      id,
+      toUpdateTagDto(current, {
+        portNumber: dto.portNumber,
+        name: dto.name ?? undefined,
+        slug: dto.slug ?? undefined,
+        dataType: formatBackendEnum(dto.dataType),
+        registerAddress: dto.registerAddress,
+        registerType: formatBackendEnum(dto.registerType),
+        registerCount: dto.registerCount,
+        unit: dto.unit ?? undefined,
+        inputMin: dto.inputMin,
+        inputMax: dto.inputMax,
+        outputMin: dto.outputMin,
+        outputMax: dto.outputMax,
+        offsetVal: dto.offsetVal,
+        formula: dto.formula,
+        endianness: formatBackendEnum(dto.endianness),
+        deadbandThreshold: dto.deadbandThreshold,
+      }),
+    );
+    notifications.add("Tag updated", `"${current.name}" saved`, "SUCCESS");
     emits("refresh");
   } catch {
-    toast.add({ title: "Failed to update tag", color: "error" });
+    notifications.add("Update failed", `Could not update "${current.name}"`, "CRITICAL");
   } finally {
     editModalOpen.value = false;
     targetTag.value = null;
@@ -115,6 +125,12 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
     :tag="targetTag"
     @update:open="editModalOpen = $event"
     @submit="handleEditSubmit"
+  />
+  <TagsUiConfigModal
+    :open="appearanceModalOpen"
+    :tag="targetTag"
+    @update:open="appearanceModalOpen = $event"
+    @saved="emits('refresh')"
   />
   <UTable
     :data="data"
@@ -143,13 +159,28 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
     </template>
 
     <template #dataType-cell="{ row }">
-      <UBadge
-        v-if="row.original.dataType"
-        :color="TAG_TYPE_COLOR[row.original.dataType]"
-        :label="TAG_DATA_TYPE[row.original.dataType]"
-        variant="soft"
-        size="sm"
-      />
+      <div class="flex flex-col items-start gap-1">
+        <UBadge
+          v-if="row.original.dataType"
+          :color="TAG_TYPE_COLOR[row.original.dataType]"
+          :label="TAG_DATA_TYPE[row.original.dataType]"
+          variant="soft"
+          size="sm"
+        />
+        <UBadge
+          v-if="registerBadge(row.original.registerType)"
+          :color="registerBadge(row.original.registerType)!.color"
+          variant="outline"
+          size="xs"
+          class="font-mono"
+          :title="registerBadge(row.original.registerType)!.full"
+        >
+          {{ registerBadge(row.original.registerType)!.label }}
+          <span class="opacity-60 ml-1">{{
+            registerBadge(row.original.registerType)!.rw ? "RW" : "RO"
+          }}</span>
+        </UBadge>
+      </div>
     </template>
 
     <template #device-cell="{ row }">
@@ -204,6 +235,13 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
 
     <template #actions-cell="{ row }">
       <div class="flex gap-1">
+        <UButton
+          :icon="paletteIcon"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          @click="openAppearance(row.original)"
+        />
         <UButton
           :icon="editIcon"
           variant="ghost"

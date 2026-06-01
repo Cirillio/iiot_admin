@@ -31,12 +31,12 @@ export const useControlHub = () => {
     });
 
     connection.onreconnecting(() => {
-      appLogger.log.general("control-hub", "Reconnecting...");
       commands.isConnected = false;
+      notifications.add("Control", "Reconnecting…", "WARNING");
     });
     connection.onreconnected(() => {
-      appLogger.log.general("control-hub", "Reconnected");
       commands.isConnected = true;
+      notifications.add("Control", "Reconnected", "SUCCESS");
     });
     connection.onclose(() => {
       appLogger.log.info("control-hub", "Connection closed");
@@ -46,8 +46,7 @@ export const useControlHub = () => {
     try {
       await connection.start();
       commands.isConnected = true;
-      appLogger.log.info("control-hub", "Control channel connected");
-      notifications.add("Control", `Connected to ${controlHub}`, "INFO");
+      notifications.add("Control", "Channel connected", "SUCCESS");
     } catch (e) {
       commands.isConnected = false;
       appLogger.log.error("control-hub", `Connection failed: ${e}`);

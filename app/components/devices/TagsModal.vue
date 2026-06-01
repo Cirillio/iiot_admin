@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update:open", val: boolean): void;
-  (e: "edit", tag: TagSettings): void;
+  (e: "edit" | "appearance", tag: TagSettings): void;
 }>();
 
 const TAG_GROUPS = [
@@ -45,6 +45,11 @@ const close = () => emit("update:open", false);
 
 const handleEdit = (tag: TagSettings) => {
   emit("edit", tag);
+  close();
+};
+
+const handleAppearance = (tag: TagSettings) => {
+  emit("appearance", tag);
   close();
 };
 </script>
@@ -108,6 +113,7 @@ const handleEdit = (tag: TagSettings) => {
                 :key="tag.tagId"
                 :item="tag"
                 @edit="handleEdit"
+                @appearance="handleAppearance"
               />
             </div>
             <div

@@ -9,11 +9,10 @@ import {
 } from "~/core/icons-map";
 import type { DashboardDevice } from "~/types/models";
 
-const props = defineProps<{ item: DashboardDevice }>();
+defineProps<{ item: DashboardDevice }>();
 
 const emit = defineEmits<{
-  (e: "edit", item: DashboardDevice): void;
-  (e: "delete", item: DashboardDevice): void;
+  (e: "edit" | "delete", item: DashboardDevice): void;
 }>();
 </script>
 
@@ -64,6 +63,20 @@ const emit = defineEmits<{
         >
           {{ item.isActive ? "Active" : "Inactive" }}
         </span>
+        <UBadge
+          v-if="item.isActive"
+          :color="item.isOnline ? 'success' : 'error'"
+          variant="soft"
+          size="xs"
+          class="font-mono uppercase"
+          :title="
+            item.isOnline
+              ? `Last seen: ${item.lastSeen ? new Date(item.lastSeen).toLocaleString() : '—'}`
+              : 'Collector cannot reach this device'
+          "
+        >
+          {{ item.isOnline ? "online" : "offline" }}
+        </UBadge>
         <span class="ml-auto text-xs font-mono text-muted/50 pr-14"
           >#{{ item.id }}</span
         >

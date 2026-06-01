@@ -4,12 +4,13 @@ import { isWritableTag, type WritableTag } from "~/utils/tag";
 
 definePageMeta({
   title: "Control",
-  description: "АРМ оператора: запись в исполнительные механизмы (Coils / Holding Registers)",
+  description: "Operator workstation: write to actuators (Coils / Holding Registers)",
 });
 
 const { isFluid } = useLayout();
 const api = useApi();
 const { connect, isConnected } = useControlHub();
+const metrics = useSignalR();
 
 const { data: tagsData, pending, refresh } = await useAsyncData(
   "tags",
@@ -23,9 +24,11 @@ const { data: devicesData } = await useAsyncData(
   { immediate: true },
 );
 
-// Гарантируем канал диспетчеризации при заходе на АРМ (на случай выключенного autoconnect).
+// На АРМ нужны оба канала: control (отправка/статусы команд) и metrics (live-значения
+// для индикации реле/уставок). Поднимаем независимо от autoconnect.
 onMounted(() => {
   if (!isConnected.value) connect();
+  if (!metrics.isConnected.value) metrics.connect();
 });
 
 const deviceNameById = computed(() => {

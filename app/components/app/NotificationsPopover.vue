@@ -87,6 +87,7 @@ const notifications = useNotificationsStore();
                 'bg-error': n.level === 'CRITICAL',
                 'bg-warning': n.level === 'WARNING',
                 'bg-info': n.level === 'INFO',
+                'bg-success': n.level === 'SUCCESS',
               }"
             />
             <div class="flex flex-col gap-0.5 flex-1 min-w-0">

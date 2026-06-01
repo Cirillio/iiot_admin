@@ -56,6 +56,7 @@ const icons = {
   pieChartIcon: "ph:chart-pie",
   activityIcon: "ph:activity",
   gaugeIcon: "ph:gauge",
+  paletteIcon: "ph:palette",
   timerIcon: "ph:timer",
   branchIcon: "ph:git-branch",
 
@@ -149,6 +150,7 @@ export const {
   pieChartIcon,
   activityIcon,
   gaugeIcon,
+  paletteIcon,
   timerIcon,
   branchIcon,
   infoIcon,

@@ -13,7 +13,7 @@ definePageMeta({
 
 const { isFluid } = useLayout();
 const api = useApi();
-const toast = useToast();
+const notifications = useNotificationsStore();
 
 const { data, pending, refresh } = await useAsyncData(
   "devices",
@@ -77,9 +77,9 @@ const handleCreate = async (dto: CreateDeviceDto) => {
   try {
     await api.devices.create(dto);
     await refresh();
-    toast.add({ title: `Device "${dto.name}" created`, color: "success" });
+    notifications.add("Device created", `"${dto.name}" added`, "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to create device", color: "error" });
+    notifications.add("Create failed", "Could not create device", "CRITICAL");
   }
 };
 
@@ -99,9 +99,9 @@ const handleEdit = async (dto: UpdateDeviceDto) => {
   try {
     await api.devices.update(id, dto);
     await refresh();
-    toast.add({ title: "Device updated", color: "success" });
+    notifications.add("Device updated", editTarget.value?.name ?? "", "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to update device", color: "error" });
+    notifications.add("Update failed", "Could not update device", "CRITICAL");
   }
 };
 
@@ -119,14 +119,12 @@ const handleDelete = async () => {
   const id = deleteTarget.value?.id;
   if (!id) return;
   try {
+    const name = deleteTarget.value?.name;
     await api.devices.delete(id);
     await refresh();
-    toast.add({
-      title: `Device "${deleteTarget.value?.name}" deleted`,
-      color: "success",
-    });
+    notifications.add("Device deleted", `"${name}" removed`, "WARNING");
   } catch {
-    toast.add({ title: "Failed to delete device", color: "error" });
+    notifications.add("Delete failed", "Could not delete device", "CRITICAL");
   }
 };
 </script>

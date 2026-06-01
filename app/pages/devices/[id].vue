@@ -33,7 +33,7 @@ const { isFluid } = useLayout();
 const api = useApi();
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
+const notifications = useNotificationsStore();
 const rt = useRealTimeStore();
 
 const deviceId = Number(route.params.id);
@@ -99,23 +99,19 @@ const handleDeviceUpdate = async (dto: UpdateDeviceDto) => {
   try {
     await api.devices.update(deviceId, dto);
     await refresh();
-    toast.add({ title: "Device updated", color: "success" });
+    notifications.add("Device updated", device.value?.name ?? "", "SUCCESS");
   } catch (e) {
-    toast.add({
-      title: "Failed to update device",
-      color: "error",
-      description: String(e),
-    });
+    notifications.add("Update failed", `Device: ${e}`, "CRITICAL");
   }
 };
 
 const handleDeviceDelete = async () => {
   try {
     await api.devices.delete(deviceId);
-    toast.add({ title: "Device deleted", color: "success" });
+    notifications.add("Device deleted", device.value?.name ?? "", "WARNING");
     router.push("/devices");
   } catch {
-    toast.add({ title: "Failed to delete device", color: "error" });
+    notifications.add("Delete failed", "Could not delete device", "CRITICAL");
   }
 };
 
@@ -143,9 +139,9 @@ const handleTagCreate = async (dto: CreateTagDto) => {
   try {
     await api.tags.create(dto);
     await refresh();
-    toast.add({ title: `Tag "${dto.name}" created`, color: "success" });
+    notifications.add("Tag created", `"${dto.name}" added`, "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to create tag", color: "error" });
+    notifications.add("Create failed", "Could not create tag", "CRITICAL");
   }
 };
 
@@ -159,33 +155,46 @@ const openTagEdit = (tag: TagSettings) => {
   tagEditOpen.value = true;
 };
 
+// --- Tag appearance / thresholds ---
+
+const tagAppearanceOpen = ref(false);
+
+const openTagAppearance = (tag: TagSettings) => {
+  selectedTag.value = tag;
+  tagAppearanceOpen.value = true;
+};
+
 const handleTagUpdate = async (dto: Partial<TagSettings>) => {
-  const id = selectedTag.value?.tagId;
-  if (!id) return;
+  const current = selectedTag.value;
+  const id = current?.tagId;
+  if (!id || !current) return;
   try {
-    await api.tags.update(id, {
-      portNumber: dto.portNumber ?? undefined,
-      name: dto.name,
-      slug: dto.slug,
-      dataType: formatBackendEnum(dto.dataType),
-      registerAddress: dto.registerAddress,
-      registerType: formatBackendEnum(dto.registerType),
-      registerCount: dto.registerCount,
-      unit: dto.unit,
-      inputMin: dto.inputMin,
-      inputMax: dto.inputMax,
-      outputMin: dto.outputMin,
-      outputMax: dto.outputMax,
-      offsetVal: dto.offsetVal,
-      formula: dto.formula,
-      endianness: dto.endianness,
-      deadbandThreshold: dto.deadbandThreshold,
-      uiConfig: dto.uiConfigJson ? JSON.stringify(dto.uiConfigJson) : "",
-    });
+    // Полная замена: весь тег + правки формы; uiConfig сохраняется маппером.
+    await api.tags.update(
+      id,
+      toUpdateTagDto(current, {
+        portNumber: dto.portNumber,
+        name: dto.name ?? undefined,
+        slug: dto.slug ?? undefined,
+        dataType: formatBackendEnum(dto.dataType),
+        registerAddress: dto.registerAddress,
+        registerType: formatBackendEnum(dto.registerType),
+        registerCount: dto.registerCount,
+        unit: dto.unit ?? undefined,
+        inputMin: dto.inputMin,
+        inputMax: dto.inputMax,
+        outputMin: dto.outputMin,
+        outputMax: dto.outputMax,
+        offsetVal: dto.offsetVal,
+        formula: dto.formula,
+        endianness: formatBackendEnum(dto.endianness),
+        deadbandThreshold: dto.deadbandThreshold,
+      }),
+    );
     await refresh();
-    toast.add({ title: "Tag updated", color: "success" });
+    notifications.add("Tag updated", `"${current.name}" saved`, "SUCCESS");
   } catch {
-    toast.add({ title: "Failed to update tag", color: "error" });
+    notifications.add("Update failed", `Could not update "${current.name}"`, "CRITICAL");
   }
 };
 
@@ -220,11 +229,17 @@ const formatDate = (s?: string) =>
       :tag="selectedTag"
       @submit="handleTagUpdate"
     />
+    <TagsUiConfigModal
+      v-model:open="tagAppearanceOpen"
+      :tag="selectedTag"
+      @saved="refresh()"
+    />
     <DevicesTagsModal
       v-model:open="tagsModalOpen"
       :tags="tags"
       :device-name="device?.name"
       @edit="openTagEdit"
+      @appearance="openTagAppearance"
     />
     <TagsCreateModal
       v-model:open="tagCreateOpen"
@@ -349,6 +364,7 @@ const formatDate = (s?: string) =>
                     :key="tag.tagId"
                     :item="tag"
                     @edit="openTagEdit"
+                    @appearance="openTagAppearance"
                   />
                 </template>
                 <div
@@ -382,6 +398,50 @@ const formatDate = (s?: string) =>
         <h2 class="text-2xl font-bold font-mono leading-tight">
           Device Details
         </h2>
+
+        <!-- Reachability (runtime, collector-driven) -->
+        <div
+          class="rounded-lg border p-3 flex flex-col gap-1"
+          :class="
+            device?.isActive
+              ? device?.isOnline
+                ? 'border-success-500/40 bg-success-500/5'
+                : 'border-error-500/40 bg-error-500/5'
+              : 'border-default bg-elevated/30'
+          "
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="size-2.5 rounded-full shrink-0"
+              :class="
+                !device?.isActive
+                  ? 'bg-neutral-600'
+                  : device?.isOnline
+                    ? 'bg-success-500 animate-pulse'
+                    : 'bg-error-500'
+              "
+            />
+            <span class="text-sm font-semibold uppercase tracking-widest">
+              {{
+                !device?.isActive
+                  ? "Polling disabled"
+                  : device?.isOnline
+                    ? "Online"
+                    : "Offline"
+              }}
+            </span>
+          </div>
+          <span class="text-xs text-muted font-mono">
+            Last seen:
+            {{ device?.lastSeen ? new Date(device.lastSeen).toLocaleString("ru-RU") : "—" }}
+          </span>
+          <span
+            v-if="device?.lastConnError && !device?.isOnline"
+            class="text-xs text-error-400 break-all"
+          >
+            {{ device.lastConnError }}
+          </span>
+        </div>
 
         <!-- Config rows -->
         <div class="flex flex-col gap-3">

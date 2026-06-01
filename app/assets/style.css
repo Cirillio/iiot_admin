@@ -65,3 +65,17 @@
     scrollbar-color: var(--color-mist-700) transparent;
   }
 }
+
+@utility cv-auto {
+  /* Изолирует рендеринг строки в длинных списках (логи, метрики) —
+     держит INP/FPS на больших объёмах. contain-intrinsic-size резервирует
+     высоту, чтобы не было layout shift. См. web guidance content-visibility. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 56px;
+}
+
+@supports not (content-visibility: auto) {
+  .cv-auto {
+    contain: layout style paint;
+  }
+}

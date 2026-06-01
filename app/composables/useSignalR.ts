@@ -42,6 +42,7 @@ export const useSignalR = () => {
         refreshNuxtData(["devices", `device-${entityId}`]);
       } else if (entityType === "TAG") {
         refreshNuxtData("tags");
+        useAlertsStore().refresh();
       } else if (entityType === "CONNECTION") {
         refreshNuxtData("connections");
       }
@@ -56,24 +57,22 @@ export const useSignalR = () => {
     });
 
     connection.onreconnecting(() => {
-      appLogger.log.general("signalr-reconnect", "Reconnecting...");
       store.isConnected = false;
+      notifications.add("Metrics", "Reconnecting…", "WARNING");
     });
     connection.onreconnected(() => {
-      appLogger.log.general("signalr-reconnect", "Reconnected");
       store.isConnected = true;
+      notifications.add("Metrics", "Reconnected", "SUCCESS");
     });
     connection.onclose(() => {
-      appLogger.log.info("signalr-close", "Connection closed");
       store.isConnected = false;
+      appLogger.log.info("signalr-close", "Connection closed");
     });
 
     try {
       await connection.start();
       store.isConnected = true;
-      notifications.add("SignalR", `Connected to ${metricsHub}`, "INFO");
-
-      appLogger.log.info("signalr-status", "SignalR Connected");
+      notifications.add("Metrics", "Channel connected", "SUCCESS");
     } catch (e) {
       store.isConnected = false;
       appLogger.log.error("signalr-error", `Connection failed: ${e}`);

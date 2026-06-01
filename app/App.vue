@@ -1,6 +1,12 @@
 <script setup lang="ts">
 const { isFluid } = useLayout();
 const route = useRoute();
+
+// Заголовок вкладки: «<Название страницы> | IIoT - SCADA».
+useHead({
+  title: () => (route.meta.title as string | undefined) ?? "",
+  titleTemplate: (t) => (t ? `${t} | IIoT - SCADA` : "IIoT - SCADA"),
+});
 </script>
 
 <template>
@@ -8,7 +14,7 @@ const route = useRoute();
     <u-container
       :class="[
         'mx-auto w-full  overflow-y-hidden transition-all duration-300 ease-in-out h-dvh',
-        isFluid ? 'max-w-full' : 'max-w-5xl',
+        isFluid ? 'max-w-full' : 'max-w-6xl',
       ]"
     >
       <div class="h-full py-2 flex gap-2 w-full flex-col">

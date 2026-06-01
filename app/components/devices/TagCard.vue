@@ -1,94 +1,119 @@
 <script setup lang="ts">
-import { editIcon } from "~/core/icons-map";
-import type { TagDataType, TagSettings } from "~/types/models";
+import { editIcon, paletteIcon, warningIcon } from "~/core/icons-map";
+import type { TagSettings } from "~/types/models";
+import { registerBadge } from "~/utils/tag";
+import {
+  digitalLabel,
+  evaluateTagStatus,
+  resolveTagColor,
+  STATUS_COLOR,
+} from "~/utils/tagStatus";
 
 const props = defineProps<{ item: TagSettings }>();
 
 const emit = defineEmits<{
-  (e: "edit", tag: TagSettings): void;
+  (e: "edit" | "appearance", tag: TagSettings): void;
 }>();
 
 const rt = useRealTimeStore();
 
 const metric = computed(() =>
-  props.item.tagId != null
-    ? rt.getMetricByTagId(props.item.tagId)
-    : undefined,
+  props.item.tagId != null ? rt.getMetricByTagId(props.item.tagId) : undefined,
 );
 
+const rawValue = computed(() => metric.value?.value ?? null);
 const isDigital = computed(() => props.item.dataType === "DIGITAL");
+const ui = computed(() => props.item.uiConfigJson ?? null);
+
+const status = computed(() =>
+  evaluateTagStatus(rawValue.value, props.item.dataType, ui.value),
+);
 
 const displayValue = computed(() => {
-  if (metric.value == null) return null;
-  const v = metric.value.value;
-  if (v == null) return null;
-  if (isDigital.value) return v >= 0.5 ? "ON" : "OFF";
-  return Number(v).toFixed(2);
+  if (rawValue.value == null) return null;
+  if (isDigital.value) return digitalLabel(rawValue.value, ui.value);
+  return Number(rawValue.value).toFixed(2);
 });
 
-const hasValue = computed(() => displayValue.value != null);
+const accentColor = computed(() => {
+  if (status.value === "critical") return STATUS_COLOR.critical;
+  if (status.value === "warning") return STATUS_COLOR.warning;
+  return resolveTagColor(ui.value, props.item.dataType);
+});
 
-// Full static class strings — required for Tailwind v4 scanning
-const TYPE_TOP_BAR: Record<TagDataType, string> = {
-  ANALOG_RAW: "bg-info-500",
-  ANALOG_PHYSICAL: "bg-info-500",
-  DIGITAL: "bg-success-500",
-  VIRTUAL: "bg-warning-500",
-};
-
-const TYPE_VALUE_COLOR: Record<TagDataType, string> = {
-  ANALOG_RAW: "text-info-300",
-  ANALOG_PHYSICAL: "text-info-300",
-  DIGITAL: "text-success-300",
-  VIRTUAL: "text-warning-300",
-};
-
-const topBarClass = computed(() =>
-  props.item.dataType ? TYPE_TOP_BAR[props.item.dataType] : "bg-neutral-600",
+const valueColor = computed(() =>
+  displayValue.value == null ? undefined : accentColor.value,
 );
 
-const valueColorClass = computed(() => {
-  if (!hasValue.value) return "text-muted/30";
-  if (isDigital.value && displayValue.value === "OFF") return "text-muted/50";
-  return props.item.dataType
-    ? TYPE_VALUE_COLOR[props.item.dataType]
-    : "text-default";
-});
+const isAlarm = computed(
+  () => status.value === "warning" || status.value === "critical",
+);
+
+const regBadge = computed(() => registerBadge(props.item.registerType));
 </script>
 
 <template>
   <div
-    class="group relative flex flex-col rounded-lg border border-default bg-elevated/20 overflow-hidden transition-colors hover:border-tertiary/30 hover:bg-elevated/40"
+    class="group relative flex flex-col rounded-lg border bg-elevated/20 overflow-hidden transition-colors hover:bg-elevated/40"
+    :class="isAlarm ? '' : 'border-default hover:border-tertiary/30'"
+    :style="isAlarm ? { borderColor: accentColor } : undefined"
   >
-    <!-- Type accent bar -->
-    <div class="h-1 w-full shrink-0" :class="topBarClass" />
+    <!-- Type / status accent bar -->
+    <div class="h-1 w-full shrink-0" :style="{ backgroundColor: accentColor }" />
 
     <div class="flex flex-col gap-3 p-4">
-      <!-- Port + Edit -->
+      <!-- Port + actions -->
       <div class="flex items-center justify-between">
-        <UBadge
-          variant="outline"
-          color="neutral"
-          size="xs"
-          class="font-mono tabular-nums"
-        >
-          P{{ item.portNumber }}
-        </UBadge>
-        <UButton
-          :icon="editIcon"
-          size="xs"
-          variant="ghost"
-          color="neutral"
-          class="opacity-0 group-hover:opacity-100 transition-opacity"
-          @click="emit('edit', item)"
-        />
+        <div class="flex items-center gap-1.5">
+          <UBadge
+            variant="outline"
+            color="neutral"
+            size="xs"
+            class="font-mono tabular-nums"
+          >
+            P{{ item.portNumber }}
+          </UBadge>
+          <UBadge
+            v-if="regBadge"
+            :color="regBadge.color"
+            variant="soft"
+            size="xs"
+            class="font-mono"
+            :title="regBadge.full"
+          >
+            {{ regBadge.label }}<span class="opacity-60 ml-1">{{ regBadge.rw ? "RW" : "RO" }}</span>
+          </UBadge>
+          <UIcon
+            v-if="isAlarm"
+            :name="warningIcon"
+            class="size-4"
+            :style="{ color: accentColor }"
+          />
+        </div>
+        <div class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <UButton
+            :icon="paletteIcon"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            @click="emit('appearance', item)"
+          />
+          <UButton
+            :icon="editIcon"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            @click="emit('edit', item)"
+          />
+        </div>
       </div>
 
       <!-- Value block -->
       <div class="flex flex-col gap-0.5">
         <span
           class="text-4xl font-mono font-bold tabular-nums leading-none tracking-tight transition-colors"
-          :class="valueColorClass"
+          :class="displayValue == null ? 'text-muted/30' : ''"
+          :style="valueColor ? { color: valueColor } : undefined"
         >
           {{ displayValue ?? "—" }}
         </span>
@@ -102,7 +127,7 @@ const valueColorClass = computed(() => {
 
       <!-- Tag name + slug -->
       <div class="flex flex-col gap-0.5 border-t border-default/50 pt-3">
-        <span class="text-sm font-semibold leading-tight">
+        <span class="text-sm font-semibold leading-tight truncate">
           {{ item.name || "Unnamed tag" }}
         </span>
         <span v-if="item.slug" class="text-xs font-mono text-muted/60 truncate">
