@@ -13,7 +13,6 @@ export const TAG_DATA_TYPE = {
   ANALOG_RAW: "ANALOG_RAW",
   ANALOG_PHYSICAL: "ANALOG_PHYSICAL",
   DIGITAL: "DIGITAL",
-  VIRTUAL: "VIRTUAL",
 } as const satisfies Record<TagDataType, TagDataType>;
 
 export const MODBUS_REGISTER_TYPE = {
@@ -30,14 +29,10 @@ export const MODBUS_ENDIANNESS = {
   BYTE_WORD_SWAP: "BYTE_WORD_SWAP",
 } as const satisfies Record<ModbusEndianness, ModbusEndianness>;
 
-export const TAG_TYPE_COLOR: Record<
-  TagDataType,
-  "info" | "success" | "warning"
-> = {
+export const TAG_TYPE_COLOR: Record<TagDataType, "info" | "success"> = {
   ANALOG_RAW: "info",
   ANALOG_PHYSICAL: "info",
   DIGITAL: "success",
-  VIRTUAL: "warning",
 };
 
 export const SERVICE_STATUS = {

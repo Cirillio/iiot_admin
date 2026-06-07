@@ -22,12 +22,42 @@ export interface Metric {
   value: number
 }
 
+/**
+ * Строка сырой метрики для табличного просмотра — ответ GET /api/metrics/raw.
+ * Ручной тип: эндпоинт пока не выведен в OpenAPI-схему (источник правды — RawMetricDto на бэкенде).
+ */
+export interface RawMetric {
+  tagId: number
+  tagName: string | null
+  unit: string | null
+  time: string
+  rawValue: number | null
+  value: number
+}
+
+/** Универсальная страница результатов с метаданными пагинации (PagedResult<T> на бэкенде). */
+export interface PagedResult<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 // --- Query params ---
 
 export interface MetricsHistoryParams {
   tagId: number
   from: string // ISO 8601
   to: string   // ISO 8601
+}
+
+/** Параметры выборки сырых метрик. Все фильтры опциональны. */
+export interface MetricsRawParams {
+  tagId?: number
+  from?: string // ISO 8601
+  to?: string   // ISO 8601
+  page?: number
+  pageSize?: number
 }
 
 export interface DevicesListParams {

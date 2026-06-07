@@ -96,6 +96,7 @@ import {
   chartIcon,
   connectionIcon,
   controlIcon,
+  databaseIcon,
   devicesIcon,
   fileIcon,
   tagIcon,
@@ -145,6 +146,12 @@ const asideNavItems: {
     label: "Analytics",
     to: "/analytics",
     icon: chartIcon,
+    color: "secondary",
+  },
+  {
+    label: "Raw Data",
+    to: "/data",
+    icon: databaseIcon,
     color: "secondary",
   },
   {

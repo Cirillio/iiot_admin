@@ -710,7 +710,6 @@ export interface components {
             outputMax?: number;
             /** Format: double */
             offsetVal?: number;
-            formula?: string | null;
             uiConfig?: string | null;
             endianness?: string | null;
             /** Format: double */
@@ -826,7 +825,7 @@ export interface components {
             lastSync?: string;
         };
         /** @enum {string} */
-        TagDataType: "ANALOG_RAW" | "ANALOG_PHYSICAL" | "DIGITAL" | "VIRTUAL";
+        TagDataType: "ANALOG_RAW" | "ANALOG_PHYSICAL" | "DIGITAL";
         TagSettings: {
             /** Format: int32 */
             tagId?: number;
@@ -857,7 +856,6 @@ export interface components {
             offsetVal?: number;
             /** Format: double */
             deadbandThreshold?: number | null;
-            formula?: string | null;
             uiConfigJson?: components["schemas"]["TagUiConfig"];
             /** Format: date-time */
             updatedAt?: string;
@@ -920,7 +918,6 @@ export interface components {
             outputMax?: number;
             /** Format: double */
             offsetVal?: number;
-            formula?: string | null;
             uiConfig?: string | null;
             endianness?: string | null;
             /** Format: double */

@@ -186,7 +186,6 @@ const handleTagUpdate = async (dto: Partial<TagSettings>) => {
         outputMin: dto.outputMin,
         outputMax: dto.outputMax,
         offsetVal: dto.offsetVal,
-        formula: dto.formula,
         endianness: formatBackendEnum(dto.endianness),
         deadbandThreshold: dto.deadbandThreshold,
       }),

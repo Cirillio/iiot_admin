@@ -186,7 +186,6 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
         outputMin: dto.outputMin,
         outputMax: dto.outputMax,
         offsetVal: dto.offsetVal,
-        formula: dto.formula,
         endianness: formatBackendEnum(dto.endianness),
         deadbandThreshold: dto.deadbandThreshold,
       }),
@@ -596,8 +595,6 @@ const tableColumns = [
             <span class="text-end">{{ tag?.offsetVal ?? "—" }}</span>
             <span class="text-muted">Deadband</span>
             <span class="text-end">{{ tag?.deadbandThreshold ?? "—" }}</span>
-            <span v-if="tag?.formula" class="text-muted">Formula</span>
-            <span v-if="tag?.formula" class="text-end truncate">{{ tag.formula }}</span>
           </div>
         </section>
       </div>

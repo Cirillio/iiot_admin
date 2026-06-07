@@ -1,5 +1,10 @@
 import type { paths } from "~/types/api-generated";
-import type { Metric } from "~/types/api";
+import type {
+  Metric,
+  MetricsRawParams,
+  PagedResult,
+  RawMetric,
+} from "~/types/api";
 import { BaseApiService } from "./BaseApiService";
 
 export class MetricsService extends BaseApiService {
@@ -14,5 +19,12 @@ export class MetricsService extends BaseApiService {
   /** Последнее показание по каждому тегу — снимок для инициализации UI. */
   async getLatest() {
     return await this.$http<Metric[]>("/api/metrics/latest");
+  }
+
+  /** Постраничная выборка сырых метрик для табличного просмотра (новые сверху). */
+  async getRaw(query: MetricsRawParams = {}) {
+    return await this.$http<PagedResult<RawMetric>>("/api/metrics/raw", {
+      query,
+    });
   }
 }

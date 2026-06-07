@@ -8,7 +8,6 @@ const TYPE_FALLBACK_COLOR: Record<TagDataType, string> = {
   ANALOG_RAW: "var(--color-info-500)",
   ANALOG_PHYSICAL: "var(--color-info-500)",
   DIGITAL: "var(--color-success-500)",
-  VIRTUAL: "var(--color-warning-500)",
 };
 
 /** CSS-цвет уровня состояния — для значения, рамки, линий порогов. */

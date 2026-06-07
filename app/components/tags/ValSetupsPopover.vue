@@ -30,9 +30,6 @@
 
         <span>offset</span>
         <span class="text-default text-end">{{ item.offsetVal }}</span>
-
-        <span>formula</span>
-        <span class="text-default text-end">{{ item.formula ?? "-" }}</span>
       </div>
       <div class="flex p-2">
         <UButton
@@ -58,7 +55,6 @@ type TagValueSetup = {
   outputMin?: number;
   outputMax?: number;
   offsetVal?: number;
-  formula?: string | null;
 };
 
 const popoverOpen = ref(false);

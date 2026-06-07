@@ -892,10 +892,6 @@
             "type": "number",
             "format": "double"
           },
-          "formula": {
-            "type": "string",
-            "nullable": true
-          },
           "uiConfig": {
             "type": "string",
             "nullable": true
@@ -1179,7 +1175,7 @@
         "additionalProperties": false
       },
       "TagDataType": {
-        "enum": ["ANALOG_RAW", "ANALOG_PHYSICAL", "DIGITAL", "VIRTUAL"],
+        "enum": ["ANALOG_RAW", "ANALOG_PHYSICAL", "DIGITAL"],
         "type": "string"
       },
       "TagSettings": {
@@ -1254,10 +1250,6 @@
           "deadbandThreshold": {
             "type": "number",
             "format": "double",
-            "nullable": true
-          },
-          "formula": {
-            "type": "string",
             "nullable": true
           },
           "uiConfigJson": {
@@ -1422,10 +1414,6 @@
           "offsetVal": {
             "type": "number",
             "format": "double"
-          },
-          "formula": {
-            "type": "string",
-            "nullable": true
           },
           "uiConfig": {
             "type": "string",

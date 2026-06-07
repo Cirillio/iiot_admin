@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
   activityIcon,
+  chartIcon,
   devicesIcon,
   gatewayIcon,
   plugIcon,
@@ -14,7 +15,20 @@ const TYPE_DOT: Record<TagDataType, string> = {
   ANALOG_RAW: "bg-info-500",
   ANALOG_PHYSICAL: "bg-info-500",
   DIGITAL: "bg-success-500",
-  VIRTUAL: "bg-warning-500",
+};
+
+/** CSS-цвет тренда/сегмента по типу данных тега. */
+const TYPE_CHART_COLOR: Record<TagDataType, string> = {
+  ANALOG_RAW: "var(--color-info-500)",
+  ANALOG_PHYSICAL: "var(--color-info-500)",
+  DIGITAL: "var(--color-success-500)",
+};
+
+/** Человекочитаемая подпись типа данных для легенды диаграммы. */
+const TYPE_LABEL: Record<TagDataType, string> = {
+  ANALOG_RAW: "Analog (raw)",
+  ANALOG_PHYSICAL: "Analog (phys)",
+  DIGITAL: "Digital",
 };
 
 definePageMeta({
@@ -32,7 +46,38 @@ const { data, pending, refresh } = useAsyncData(
   { immediate: true },
 );
 
+// Полный список тегов нужен для точного распределения по типам:
+// device.tags на дашборде — лишь усечённый preview, по нему долю не посчитать.
+const { data: tagsData } = useAsyncData("dashboard-tags", () =>
+  api.tags.list(),
+);
+
 const devices = computed(() => data.value ?? []);
+
+/** Сегменты кольцевой диаграммы: количество тегов по типу данных. */
+const tagTypeSegments = computed(() => {
+  const counts = new Map<TagDataType, number>();
+  for (const t of tagsData.value ?? []) {
+    if (!t.dataType) continue;
+    counts.set(t.dataType, (counts.get(t.dataType) ?? 0) + 1);
+  }
+  return [...counts.entries()].map(([type, value]) => ({
+    label: TYPE_LABEL[type],
+    value,
+    color: TYPE_CHART_COLOR[type],
+  }));
+});
+
+/** Столбцы: число тегов на устройство (топ-12 по убыванию для читаемости). */
+const deviceBarItems = computed(() =>
+  [...devices.value]
+    .map((d) => ({ label: d.name ?? `#${d.id}`, value: d.totalTags ?? 0 }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 12),
+);
+
+const tagColor = (dataType: TagDataType | undefined) =>
+  dataType ? TYPE_CHART_COLOR[dataType] : "var(--color-info-500)";
 
 const stats = computed(() => {
   const total = devices.value.length;
@@ -155,6 +200,39 @@ const greeting = computed(() => {
         </div>
       </div>
 
+      <!-- Overview charts -->
+      <div class="grid grid-cols-3 gap-3">
+        <!-- Tag type distribution -->
+        <div
+          class="rounded-lg border border-default bg-elevated/30 p-4 flex flex-col gap-2"
+        >
+          <div class="flex items-center gap-2 text-muted">
+            <UIcon :name="tagIcon" class="size-4" />
+            <span class="text-xs uppercase tracking-wider"
+              >Tag types</span
+            >
+          </div>
+          <ChartsCategoryDonut :segments="tagTypeSegments" :height="180" />
+        </div>
+
+        <!-- Tags per device -->
+        <div
+          class="col-span-2 rounded-lg border border-default bg-elevated/30 p-4 flex flex-col gap-2"
+        >
+          <div class="flex items-center gap-2 text-muted">
+            <UIcon :name="chartIcon" class="size-4" />
+            <span class="text-xs uppercase tracking-wider"
+              >Tags per device</span
+            >
+          </div>
+          <ChartsCategoryBar
+            :items="deviceBarItems"
+            series-name="tags"
+            :height="180"
+          />
+        </div>
+      </div>
+
       <!-- Device grid -->
       <div v-if="pending" class="grid grid-cols-3 gap-3">
         <div
@@ -238,7 +316,14 @@ const greeting = computed(() => {
                   {{ tag.name ?? tag.slug ?? `P${tag.portNumber}` }}
                 </span>
               </div>
-              <div class="flex items-center gap-1 shrink-0">
+              <div class="flex items-center gap-1.5 shrink-0">
+                <ChartsSparkline
+                  v-if="tag.tagId != null"
+                  :values="rt.getTrend(tag.tagId)"
+                  :color="tagColor(tag.dataType)"
+                  :height="18"
+                  class="w-14"
+                />
                 <span
                   class="text-[11px] font-mono tabular-nums"
                   :class="

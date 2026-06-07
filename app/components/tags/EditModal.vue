@@ -36,7 +36,6 @@ const form = reactive<{
   outputMax: number;
   offsetVal: number;
   deadbandThreshold: number | null;
-  formula: string;
 }>({
   name: "",
   slug: "",
@@ -53,7 +52,6 @@ const form = reactive<{
   outputMax: 100,
   offsetVal: 0,
   deadbandThreshold: null,
-  formula: "",
 });
 
 watch(
@@ -75,7 +73,6 @@ watch(
     form.outputMax = t.outputMax ?? 100;
     form.offsetVal = t.offsetVal ?? 0;
     form.deadbandThreshold = t.deadbandThreshold ?? null;
-    form.formula = t.formula ?? "";
   },
   { immediate: true },
 );
@@ -221,14 +218,6 @@ const handleSubmit = () => {
               v-model="form.deadbandThreshold"
               type="number"
               placeholder="—"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField label="Formula" class="col-span-2">
-            <UInput
-              v-model="form.formula"
-              placeholder="slug_a * 2 + …"
               class="w-full"
             />
           </UFormField>

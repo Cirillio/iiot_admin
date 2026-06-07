@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { editIcon, paletteIcon, warningIcon } from "~/core/icons-map";
+import { chartIcon, editIcon, paletteIcon, warningIcon } from "~/core/icons-map";
 import type { TagSettings } from "~/types/models";
-import { registerBadge } from "~/utils/tag";
+import { COMMAND_STATUS, type CommandStatus } from "~/types/api";
+import { isWritableTag, registerBadge, type WritableTag } from "~/utils/tag";
 import {
   digitalLabel,
   evaluateTagStatus,
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 }>();
 
 const rt = useRealTimeStore();
+const commands = useCommandsStore();
 
 const metric = computed(() =>
   props.item.tagId != null ? rt.getMetricByTagId(props.item.tagId) : undefined,
@@ -35,10 +37,13 @@ const displayValue = computed(() => {
   return Number(rawValue.value).toFixed(2);
 });
 
+// Базовый цвет тега из uiConfig (или по типу) — без подмены на цвет тревоги.
+const baseColor = computed(() => resolveTagColor(ui.value, props.item.dataType));
+
 const accentColor = computed(() => {
   if (status.value === "critical") return STATUS_COLOR.critical;
   if (status.value === "warning") return STATUS_COLOR.warning;
-  return resolveTagColor(ui.value, props.item.dataType);
+  return baseColor.value;
 });
 
 const valueColor = computed(() =>
@@ -49,7 +54,51 @@ const isAlarm = computed(
   () => status.value === "warning" || status.value === "critical",
 );
 
+const trend = computed(() =>
+  props.item.tagId != null ? rt.getTrend(props.item.tagId) : [],
+);
+
 const regBadge = computed(() => registerBadge(props.item.registerType));
+
+// Пороги из uiConfig для отображения чипами (только аналоговые, только заданные).
+const num = (v: number | null | undefined): v is number =>
+  typeof v === "number" && Number.isFinite(v);
+
+const thresholdChips = computed(() => {
+  const u = ui.value;
+  if (!u || isDigital.value) return [];
+  const chips: { label: string; color: string; title: string }[] = [];
+  if (num(u.minCritical))
+    chips.push({ label: `≤ ${u.minCritical}`, color: STATUS_COLOR.critical, title: "min critical" });
+  if (num(u.minWarning))
+    chips.push({ label: `≤ ${u.minWarning}`, color: STATUS_COLOR.warning, title: "min warning" });
+  if (num(u.maxWarning))
+    chips.push({ label: `≥ ${u.maxWarning}`, color: STATUS_COLOR.warning, title: "max warning" });
+  if (num(u.maxCritical))
+    chips.push({ label: `≥ ${u.maxCritical}`, color: STATUS_COLOR.critical, title: "max critical" });
+  return chips;
+});
+
+// Управление: только для записываемых регистров (Coil / Holding).
+const writableTag = computed<WritableTag | null>(() =>
+  isWritableTag(props.item) ? props.item : null,
+);
+
+const isCoil = computed(() => props.item.registerType === "COIL");
+
+const lastCommand = computed(() =>
+  props.item.tagId != null ? commands.getByTagId(props.item.tagId) : undefined,
+);
+
+const CMD_META: Record<
+  CommandStatus,
+  { label: string; color: "neutral" | "info" | "success" | "error" }
+> = {
+  PENDING: { label: "В очереди", color: "neutral" },
+  PROCESSING: { label: "Выполняется", color: "info" },
+  SUCCESS: { label: "Успешно", color: "success" },
+  FAILED: { label: "Ошибка", color: "error" },
+};
 </script>
 
 <template>
@@ -92,6 +141,15 @@ const regBadge = computed(() => registerBadge(props.item.registerType));
         </div>
         <div class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton
+            v-if="item.tagId != null"
+            :icon="chartIcon"
+            :to="`/tags/${item.tagId}`"
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            title="Открыть страницу датчика"
+          />
+          <UButton
             :icon="paletteIcon"
             size="xs"
             variant="ghost"
@@ -125,14 +183,70 @@ const regBadge = computed(() => registerBadge(props.item.registerType));
         </span>
       </div>
 
-      <!-- Tag name + slug -->
-      <div class="flex flex-col gap-0.5 border-t border-default/50 pt-3">
-        <span class="text-sm font-semibold leading-tight truncate">
-          {{ item.name || "Unnamed tag" }}
+      <!-- Live trend (session) -->
+      <ChartsSparkline :values="trend" :color="accentColor" :height="28" />
+
+      <!-- Thresholds from uiConfig -->
+      <div v-if="thresholdChips.length" class="flex flex-wrap gap-1">
+        <span
+          v-for="(chip, i) in thresholdChips"
+          :key="i"
+          :title="chip.title"
+          class="inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-mono tabular-nums"
+          :style="{ color: chip.color, borderColor: chip.color }"
+        >
+          {{ chip.label }}
         </span>
-        <span v-if="item.slug" class="text-xs font-mono text-muted/60 truncate">
-          {{ item.slug }}
-        </span>
+      </div>
+
+      <!-- Supervisory control (writable tags only) -->
+      <div
+        v-if="writableTag"
+        class="flex flex-col gap-2 border-t border-default/50 pt-3"
+      >
+        <ControlCoilToggle v-if="isCoil" :tag="writableTag" />
+        <ControlHoldingSetpoint v-else :tag="writableTag" />
+
+        <div v-if="lastCommand" class="flex items-center gap-2">
+          <UBadge
+            :color="CMD_META[lastCommand.status].color"
+            variant="soft"
+            size="xs"
+          >
+            {{ CMD_META[lastCommand.status].label }}
+          </UBadge>
+          <span
+            v-if="lastCommand.status === COMMAND_STATUS.FAILED && lastCommand.errorMessage"
+            class="text-xs text-error-400 truncate"
+            :title="lastCommand.errorMessage"
+          >
+            {{ lastCommand.errorMessage }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Tag name + slug (link to detail) -->
+      <div class="flex items-center gap-2 border-t border-default/50 pt-3">
+        <span
+          class="size-2.5 shrink-0 rounded-full"
+          :style="{ backgroundColor: baseColor }"
+          title="Цвет датчика (uiConfig)"
+        />
+        <div class="flex flex-col gap-0.5 min-w-0">
+          <NuxtLink
+            v-if="item.tagId != null"
+            :to="`/tags/${item.tagId}`"
+            class="text-sm font-semibold leading-tight truncate hover:text-primary transition-colors"
+          >
+            {{ item.name || "Unnamed tag" }}
+          </NuxtLink>
+          <span v-else class="text-sm font-semibold leading-tight truncate">
+            {{ item.name || "Unnamed tag" }}
+          </span>
+          <span v-if="item.slug" class="text-xs font-mono text-muted/60 truncate">
+            {{ item.slug }}
+          </span>
+        </div>
       </div>
     </div>
   </div>

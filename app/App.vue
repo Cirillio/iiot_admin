@@ -1,12 +1,16 @@
 <script setup lang="ts">
-const { isFluid } = useLayout();
-const route = useRoute();
+const { isFluid } = useLayout()
+const route = useRoute()
+
+const theme = useColorMode()
+
+theme.value = 'dark'
 
 // Заголовок вкладки: «<Название страницы> | IIoT - SCADA».
 useHead({
-  title: () => (route.meta.title as string | undefined) ?? "",
-  titleTemplate: (t) => (t ? `${t} | IIoT - SCADA` : "IIoT - SCADA"),
-});
+  title: () => (route.meta.title as string | undefined) ?? '',
+  titleTemplate: (t) => (t ? `${t} | IIoT - SCADA` : 'IIoT - SCADA'),
+})
 </script>
 
 <template>
@@ -36,19 +40,17 @@ useHead({
                       {
                         immediate: true,
                         deep: true,
-                      },
+                      }
                     )
                   "
                 />
 
                 <div class="space-y-2">
                   <h1 class="text-4xl font-bold font-mono text-primary">
-                    {{ (error as any)?.statusCode || "ERROR" }}
+                    {{ (error as any)?.statusCode || 'ERROR' }}
                   </h1>
                   <p class="text-muted text-lg max-w-md">
-                    {{
-                      error?.message || "Что-то пошло не так в модуле страницы."
-                    }}
+                    {{ error?.message || 'Что-то пошло не так в модуле страницы.' }}
                   </p>
                 </div>
 
@@ -81,11 +83,7 @@ useHead({
 }
 
 body {
-  background-image: radial-gradient(
-    circle,
-    var(--ui-color-neutral-500) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(circle, var(--ui-color-neutral-500) 1px, transparent 1px);
   background-size: 40px 40px;
   animation: grid-drift 6s linear infinite;
 }

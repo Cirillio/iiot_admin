@@ -41,7 +41,6 @@ const makeDefaults = () => ({
   outputMax: 100,
   offsetVal: 0,
   deadbandThreshold: null as number | null,
-  formula: "",
 });
 
 const form = reactive(makeDefaults());
@@ -104,7 +103,6 @@ const handleSubmit = () => {
     outputMax: form.outputMax,
     offsetVal: form.offsetVal,
     deadbandThreshold: form.deadbandThreshold,
-    formula: form.formula,
     uiConfig: "",
   });
   emits("update:open", false);
@@ -224,14 +222,6 @@ const handleSubmit = () => {
               v-model="form.deadbandThreshold"
               type="number"
               placeholder="—"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField label="Formula" class="col-span-2">
-            <UInput
-              v-model="form.formula"
-              placeholder="slug_a * 2 + …"
               class="w-full"
             />
           </UFormField>

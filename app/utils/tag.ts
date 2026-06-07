@@ -87,7 +87,6 @@ export function toUpdateTagDto(
     outputMin: tag.outputMin ?? 0,
     outputMax: tag.outputMax ?? 0,
     offsetVal: tag.offsetVal ?? 0,
-    formula: tag.formula ?? null,
     uiConfig: tag.uiConfigJson ? serializeUiConfig(tag.uiConfigJson) : "",
     endianness: formatBackendEnum(tag.endianness),
     deadbandThreshold: tag.deadbandThreshold ?? null,

@@ -97,7 +97,6 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
         outputMin: dto.outputMin,
         outputMax: dto.outputMax,
         offsetVal: dto.offsetVal,
-        formula: dto.formula,
         endianness: formatBackendEnum(dto.endianness),
         deadbandThreshold: dto.deadbandThreshold,
       }),
@@ -206,7 +205,6 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
             outputMin: row.original.outputMin,
             outputMax: row.original.outputMax,
             offsetVal: row.original.offsetVal,
-            formula: row.original.formula,
           }"
         />
         <div class="flex flex-col items-start">
