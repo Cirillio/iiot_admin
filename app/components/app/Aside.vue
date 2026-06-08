@@ -93,7 +93,6 @@
 import type { ButtonProps } from "@nuxt/ui";
 import {
   appLogoIcon,
-  chartIcon,
   connectionIcon,
   controlIcon,
   databaseIcon,
@@ -140,12 +139,6 @@ const asideNavItems: {
     label: "Control",
     to: "/control",
     icon: controlIcon,
-    color: "secondary",
-  },
-  {
-    label: "Analytics",
-    to: "/analytics",
-    icon: chartIcon,
     color: "secondary",
   },
   {

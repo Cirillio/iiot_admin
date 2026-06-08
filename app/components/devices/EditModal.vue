@@ -106,7 +106,7 @@ const handleSubmit = () => {
             label="Group polling"
             class="col-span-2 flex items-center gap-3"
           >
-            <UToggle v-model="form.useGroupPolling" />
+            <USwitch v-model="form.useGroupPolling" />
             <span class="text-sm text-muted">{{
               form.useGroupPolling ? "Grouped reads" : "Per-register reads"
             }}</span>
@@ -116,7 +116,7 @@ const handleSubmit = () => {
             label="Active"
             class="col-span-2 flex items-baseline justify-between gap-4"
           >
-            <UToggle v-model="form.isActive" />
+            <USwitch v-model="form.isActive" />
             <span
               class="text-sm text-muted"
               :class="[

@@ -102,14 +102,14 @@ const handleSubmit = () => {
             label="Group polling"
             class="col-span-2 flex items-center gap-3"
           >
-            <UToggle v-model="form.useGroupPolling" />
+            <USwitch v-model="form.useGroupPolling" />
             <span class="text-sm text-muted">{{
               form.useGroupPolling ? "Grouped reads" : "Per-register reads"
             }}</span>
           </UFormField>
 
           <UFormField label="Active" class="col-span-2 flex items-center gap-3">
-            <UToggle v-model="form.isActive" />
+            <USwitch v-model="form.isActive" />
             <span class="text-sm text-muted">{{
               form.isActive ? "Online" : "Offline"
             }}</span>

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { AreaChart, CurveType } from "vue-chrts";
-import { downsampleLTTB } from "~/utils/downsample";
 import { STATUS_COLOR, type ThresholdLine } from "~/utils/tagStatus";
 
 const props = withDefaults(
@@ -12,6 +11,10 @@ const props = withDefaults(
     color?: string;
     /** Длина окна в часах — определяет формат меток оси X */
     rangeHours?: number;
+    /** Левая граница окна (unix_ms). По умолчанию — время первой точки. */
+    from?: number;
+    /** Правая граница окна (unix_ms). По умолчанию — время последней точки. */
+    to?: number;
     height?: number;
     /** Горизонтальные линии порогов */
     thresholds?: ThresholdLine[];
@@ -22,30 +25,70 @@ const props = withDefaults(
     unit: "",
     color: "var(--color-info-500, #3b82f6)",
     rangeHours: 24,
+    from: undefined,
+    to: undefined,
     height: 360,
     thresholds: () => [],
     digital: false,
   },
 );
 
+// null = нет данных в этой ячейке времени → разрыв линии (а не ложный ноль).
 interface Point {
   t: number;
-  value: number;
+  value: number | null;
 }
 
 // Геометрия области построения фиксирована — иначе нельзя позиционировать оверлей порогов.
 const PAD = { top: 8, right: 16, bottom: 24, left: 48 };
 
-const sampled = computed(() => downsampleLTTB(props.points, 600));
+// Число ячеек равномерной временной сетки. Ось X у vue-chrts индексная, поэтому
+// ресемпл по равным интервалам времени — единственный способ сделать так, чтобы
+// горизонталь отражала реальное время, а не порядок точек.
+const GRID = 600;
 
-const data = computed<Point[]>(() =>
-  sampled.value.map(([t, value]) => ({ t, value })),
-);
+const xWindow = computed<[number, number]>(() => {
+  const pts = props.points;
+  const from = props.from ?? pts[0]?.[0] ?? Date.now();
+  const to = props.to ?? pts[pts.length - 1]?.[0] ?? from + 1;
+  return from < to ? [from, to] : [from, from + 1];
+});
+
+// Раскладываем точки по равномерной сетке окна [from, to].
+// Аналог — линейная интерполяция между соседними замерами; digital — LOCF (ступень).
+// Слева от первой точки данных нет → null (разрыв).
+const data = computed<Point[]>(() => {
+  const pts = props.points;
+  const [from, to] = xWindow.value;
+  const step = (to - from) / (GRID - 1);
+  const out: Point[] = [];
+  let j = 0;
+  for (let i = 0; i < GRID; i++) {
+    const t = from + i * step;
+    while (j + 1 < pts.length && pts[j + 1]![0] <= t) j++;
+
+    let value: number | null = null;
+    const cur = pts[j];
+    if (cur && cur[0] <= t) {
+      const nxt = pts[j + 1];
+      if (!props.digital && nxt && nxt[0] > cur[0]) {
+        const r = (t - cur[0]) / (nxt[0] - cur[0]);
+        value = cur[1] + (nxt[1] - cur[1]) * r;
+      } else {
+        value = cur[1]; // digital-ступень либо удержание последнего уровня
+      }
+    }
+    out.push({ t, value });
+  }
+  return out;
+});
 
 const yDomain = computed<[number, number]>(() => {
   if (props.digital) return [-0.08, 1.08];
 
-  const vals = sampled.value.map((p) => p[1]);
+  const vals = data.value
+    .map((p) => p.value)
+    .filter((v): v is number => v != null);
   const thr = props.thresholds.map((t) => t.value);
   const all = [...vals, ...thr];
   if (all.length === 0) return [0, 1];
@@ -96,10 +139,12 @@ const formatNum = (v: number) => {
 const yFormatter = (tick: number) =>
   props.digital ? (tick >= 0.5 ? "1" : "0") : formatNum(tick);
 
+// Сетка равномерна по времени, поэтому индекс тика линейно соответствует времени:
+// восстанавливаем момент по позиции, без обращения к конкретной точке.
 const xFormatter = (i: number) => {
-  const p = data.value[i];
-  if (!p) return "";
-  const d = new Date(p.t);
+  const [from, to] = xWindow.value;
+  const t = from + (i * (to - from)) / (GRID - 1);
+  const d = new Date(t);
   return props.rangeHours <= 24
     ? d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
     : d.toLocaleDateString("ru-RU", {
@@ -109,6 +154,10 @@ const xFormatter = (i: number) => {
         minute: "2-digit",
       });
 };
+
+// vue-chrts не прокидывает x-аккессор в Crosshair → unovis спамит ошибку при
+// наведении. Дублируем индексный аккессор графика, сохранив дефолтный цвет.
+const crosshairConfig = { color: "#666", x: (_d: Point, i: number) => i };
 
 const tooltipTitleFormatter = (p: Point) =>
   new Date(p.t).toLocaleString("ru-RU", {
@@ -135,9 +184,11 @@ const tooltipTitleFormatter = (p: Point) =>
       :x-formatter="xFormatter"
       :y-formatter="yFormatter"
       :tooltip-title-formatter="tooltipTitleFormatter"
+      :crosshair-config="crosshairConfig"
       :y-grid-line="true"
       :x-num-ticks="6"
       :y-num-ticks="5"
+      :duration="0"
       hide-legend
     />
 

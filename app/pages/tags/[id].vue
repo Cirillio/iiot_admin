@@ -31,6 +31,13 @@ definePageMeta({
 
 const api = useApi();
 const route = useRoute();
+const router = useRouter();
+
+// Назад по истории; фоллбэк на список тегов при прямом заходе (истории нет).
+const goBack = () => {
+  if (window.history.state?.back) router.back();
+  else router.push("/tags");
+};
 const notifications = useNotificationsStore();
 const rt = useRealTimeStore();
 const commands = useCommandsStore();
@@ -98,16 +105,23 @@ const RANGES = [
   { label: "30d", hours: 720 },
 ] as const;
 
-const selectedRange = ref<(typeof RANGES)[number]>(RANGES[2]);
+const selectedRange = ref<(typeof RANGES)[number]>(RANGES[0]);
 const historyPending = ref(false);
 const points = ref<[number, number][]>([]);
 
 type ViewMode = "chart" | "table";
 const viewMode = ref<ViewMode>("chart");
 
+// Границы окна графика (unix_ms): ось X покрывает весь запрошенный диапазон,
+// а не только промежуток имеющихся точек — иначе на 30d редкие данные врут о масштабе.
+const windowFrom = ref(0);
+const windowTo = ref(0);
+
 const fetchHistory = async () => {
   const to = new Date();
   const from = new Date(to.getTime() - selectedRange.value.hours * 3_600_000);
+  windowFrom.value = from.getTime();
+  windowTo.value = to.getTime();
   historyPending.value = true;
   try {
     const raw = await api.metrics.getHistory({
@@ -116,6 +130,7 @@ const fetchHistory = async () => {
       to: to.toISOString(),
     });
     points.value = (raw as unknown as [number, number][]) ?? [];
+    liveBuffer = []; // снимок свежий — копившиеся точки больше не нужны
   } finally {
     historyPending.value = false;
   }
@@ -123,6 +138,39 @@ const fetchHistory = async () => {
 
 watch(selectedRange, fetchHistory);
 onMounted(fetchHistory);
+
+// Продлеваем график живыми метриками: история — снимок на момент загрузки.
+// Точки копим в буфер и вливаем пачкой по таймеру: поштучная дорисовка каждую
+// секунду заставляла unovis перерисовывать весь SVG и дёргала layout страницы.
+// Верхний дисплей значения обновляется мгновенно — он читает liveMetric напрямую.
+let liveBuffer: [number, number][] = [];
+
+watch(liveMetric, (m) => {
+  if (!m) return;
+  const ts = Date.parse(m.time);
+  if (!Number.isFinite(ts)) return;
+  const lastTs =
+    liveBuffer[liveBuffer.length - 1]?.[0] ??
+    points.value[points.value.length - 1]?.[0];
+  if (lastTs != null && lastTs >= ts) return; // дубль или устаревшая точка
+  liveBuffer.push([ts, m.value]);
+});
+
+const flushLive = () => {
+  if (liveBuffer.length === 0) return;
+  points.value = [...points.value, ...liveBuffer];
+  const lastTs = liveBuffer[liveBuffer.length - 1]![0];
+  if (lastTs > windowTo.value) windowTo.value = lastTs; // правый край тянется за live
+  liveBuffer = [];
+};
+
+let flushTimer: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  flushTimer = setInterval(flushLive, 3000);
+});
+onBeforeUnmount(() => {
+  if (flushTimer) clearInterval(flushTimer);
+});
 
 // --- Range statistics ---
 
@@ -249,7 +297,7 @@ const tableColumns = [
           variant="ghost"
           color="neutral"
           size="sm"
-          to="/tags"
+          @click="goBack"
         />
         <div
           class="size-2.5 rounded-full shrink-0"
@@ -398,6 +446,8 @@ const tableColumns = [
           <div v-else-if="viewMode === 'chart'" class="flex-1 min-h-0">
             <ChartsMetricChart
               :points="points"
+              :from="windowFrom"
+              :to="windowTo"
               :unit="tag?.unit ?? ''"
               :color="accentColor"
               :range-hours="selectedRange.hours"

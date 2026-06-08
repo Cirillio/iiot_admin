@@ -15,12 +15,12 @@ import {
   viewTableIcon,
 } from "~/core/icons-map";
 import type { Metric } from "~/types/api";
-import {
-  type CreateTagDto,
-  type Device,
-  type TagDataType,
-  type TagSettings,
-  type UpdateDeviceDto,
+import type {
+  CreateTagDto,
+  Device,
+  TagDataType,
+  TagSettings,
+  UpdateDeviceDto,
 } from "~/types/models";
 
 definePageMeta({
@@ -305,7 +305,7 @@ const formatDate = (s?: string) =>
               variant="soft"
               @click="tagCreateOpen = true"
             />
-            <UDivider orientation="vertical" class="h-4 mx-1" />
+            <USeparator orientation="vertical" class="h-4 mx-1" />
             <UButton
               :icon="viewCardsIcon"
               size="xs"
@@ -320,7 +320,7 @@ const formatDate = (s?: string) =>
               :color="viewMode === 'table' ? 'primary' : 'neutral'"
               @click="viewMode = 'table'"
             />
-            <UDivider orientation="vertical" class="h-4 mx-1" />
+            <USeparator orientation="vertical" class="h-4 mx-1" />
             <UButton
               :icon="expandIcon"
               size="xs"
