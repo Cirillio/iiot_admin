@@ -112,6 +112,14 @@ const points = ref<[number, number][]>([]);
 type ViewMode = "chart" | "table";
 const viewMode = ref<ViewMode>("chart");
 
+// Высота графика — от фактической высоты контейнера (а не фикс. 420px):
+// заполняет экран и пересчитывается при переключении ширины (useLayout).
+const chartBox = ref<HTMLElement | null>(null);
+const { height: chartBoxHeight } = useElementSize(chartBox);
+const chartHeight = computed(() =>
+  Math.max(280, Math.floor(chartBoxHeight.value || 0)),
+);
+
 // Границы окна графика (unix_ms): ось X покрывает весь запрошенный диапазон,
 // а не только промежуток имеющихся точек — иначе на 30d редкие данные врут о масштабе.
 const windowFrom = ref(0);
@@ -443,7 +451,11 @@ const tableColumns = [
           </div>
 
           <!-- Chart -->
-          <div v-else-if="viewMode === 'chart'" class="flex-1 min-h-0">
+          <div
+            v-else-if="viewMode === 'chart'"
+            ref="chartBox"
+            class="flex-1 min-h-0"
+          >
             <ChartsMetricChart
               :points="points"
               :from="windowFrom"
@@ -453,7 +465,7 @@ const tableColumns = [
               :range-hours="selectedRange.hours"
               :thresholds="thresholds"
               :digital="isDigital"
-              :height="420"
+              :height="chartHeight"
             />
           </div>
 
