@@ -10,6 +10,7 @@ import {
   paletteIcon,
   reloadIcon,
   timerIcon,
+  viewTableIcon,
   warningIcon,
 } from "~/core/icons-map";
 import type { TagSettings } from "~/types/models";
@@ -137,13 +138,92 @@ const fetchRaw = async () => {
 
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)));
 
-// Смена периода сбрасывает на первую страницу; смена страницы — догружает.
-watch(selectedHours, () => {
+// --- Chart (снимок истории за период) ---
+
+type ViewMode = "chart" | "table";
+const viewMode = ref<ViewMode>("chart");
+
+const points = ref<[number, number][]>([]);
+const historyPending = ref(false);
+// Границы окна графика (unix_ms): ось X покрывает весь период, а не только точки.
+const windowFrom = ref(0);
+const windowTo = ref(0);
+
+// Высота графика — от контейнера; дебаунс гасит субпиксельный шум ResizeObserver.
+const chartBox = ref<HTMLElement | null>(null);
+const { height: chartBoxHeight } = useElementSize(chartBox);
+const chartHeightRaw = computed(() =>
+  Math.max(280, Math.floor(chartBoxHeight.value || 0)),
+);
+const chartHeight = refDebounced(chartHeightRaw, 150);
+
+const chartRangeHours = computed(() =>
+  selectedHours.value > 0 ? selectedHours.value : 24 * 365,
+);
+
+const fetchHistory = async () => {
+  const to = new Date();
+  const from = new Date(to.getTime() - chartRangeHours.value * 3_600_000);
+  windowFrom.value = from.getTime();
+  windowTo.value = to.getTime();
+  historyPending.value = true;
+  try {
+    const raw = await api.metrics.getHistory({
+      tagId,
+      from: from.toISOString(),
+      to: to.toISOString(),
+    });
+    points.value = (raw as unknown as [number, number][]) ?? [];
+  } finally {
+    historyPending.value = false;
+  }
+};
+
+// Период обновляет и таблицу, и график; смена страницы — только таблицу.
+const reload = () => {
   page.value = 1;
   fetchRaw();
-});
+  fetchHistory();
+};
+
+watch(selectedHours, reload);
 watch(page, fetchRaw);
-onMounted(fetchRaw);
+onMounted(reload);
+
+// Живое пополнение: новая метрика приходит ровно при INSERT строки в metrics
+// (SignalR транслирует pg_notify), поэтому добавляем её в начало локально — без
+// рефетча, без мигания loading. Только на 1-й странице (новые сверху); на остальных
+// страницах — исторический срез. Дедуп по времени защищает от повторной вставки
+// seed-значения. Длину держим ≤ pageSize, total растим для счётчика/пагинации.
+watch(liveMetric, (m) => {
+  if (!m) return;
+
+  // Таблица: новую строку в начало (новые сверху), только на 1-й странице.
+  if (page.value === 1 && rows.value[0]?.time !== m.time) {
+    rows.value = [
+      {
+        tagId: m.tagId,
+        tagName: tag.value?.name ?? null,
+        unit: tag.value?.unit ?? null,
+        time: m.time,
+        rawValue: m.rawValue,
+        value: m.value,
+      },
+      ...rows.value,
+    ].slice(0, pageSize);
+    total.value += 1;
+  }
+
+  // График: новую точку в конец (points отсортированы по возрастанию времени),
+  // правый край окна тянем за ней. Дёрганья нет — высота изолирована (absolute),
+  // tooltip отключён, домен Y считается по реальным точкам.
+  const ts = Date.parse(m.time);
+  const lastTs = points.value[points.value.length - 1]?.[0];
+  if (Number.isFinite(ts) && lastTs !== ts) {
+    points.value = [...points.value, [ts, m.value]];
+    if (ts > windowTo.value) windowTo.value = ts;
+  }
+});
 
 // Цвет значения в таблице по статусу относительно порогов — та же логика, что и
 // у live-значения справа (critical/warning → STATUS_COLOR, normal → акцент тега).
@@ -318,8 +398,8 @@ const tableColumns = [
           variant="ghost"
           color="neutral"
           size="sm"
-          :disabled="pending || rawPending"
-          @click="refresh(); fetchRaw()"
+          :disabled="pending || rawPending || historyPending"
+          @click="refresh(); reload()"
         />
         <UBadge
           :color="rt.isConnected ? 'success' : 'neutral'"
@@ -334,112 +414,185 @@ const tableColumns = [
     </div>
 
     <div class="flex h-full min-h-0">
-      <!-- Left: raw metrics table -->
+      <!-- Left: history (chart / table tabs) -->
       <div class="flex-3 min-w-0 h-full min-h-0 flex flex-col">
+        <!-- Header: tabs -->
         <div
-          class="flex items-center gap-2 px-4 py-2.5 border-b border-default flex-wrap shrink-0"
+          class="flex items-center gap-2 px-4 py-2.5 border-b border-default shrink-0"
         >
           <UIcon :name="chartIcon" class="size-5 text-muted" />
-          <span class="text-base font-semibold">Raw metrics</span>
+          <span class="text-base font-semibold">History</span>
 
-          <USelect
-            v-model="selectedHours"
-            :items="rangeItems"
-            value-key="value"
-            size="xs"
-            class="ml-2 w-40"
-          />
-
-          <span class="ml-auto text-xs text-muted font-mono tabular-nums">
-            {{ total.toLocaleString("ru-RU") }} rows
-          </span>
+          <div class="flex gap-1 ml-auto">
+            <UButton
+              label="График"
+              :icon="chartIcon"
+              size="xs"
+              :variant="viewMode === 'chart' ? 'solid' : 'ghost'"
+              :color="viewMode === 'chart' ? 'primary' : 'neutral'"
+              @click="viewMode = 'chart'"
+            />
+            <UButton
+              label="Таблица"
+              :icon="viewTableIcon"
+              size="xs"
+              :variant="viewMode === 'table' ? 'solid' : 'ghost'"
+              :color="viewMode === 'table' ? 'primary' : 'neutral'"
+              @click="viewMode = 'table'"
+            />
+          </div>
         </div>
 
-        <!-- Table -->
-        <div class="flex-1 min-h-0 overflow-auto">
-          <UTable
-            :data="rows"
-            :columns="tableColumns"
-            :loading="rawPending"
-            class="w-full"
-            sticky
+        <!-- Chart tab -->
+        <template v-if="viewMode === 'chart'">
+          <div
+            class="flex items-center gap-2 px-4 py-2 border-b border-default shrink-0"
           >
-            <template #time-cell="{ row }">
-              <span class="font-mono text-xs tabular-nums text-muted">{{
-                fmtTime(row.original.time)
-              }}</span>
-            </template>
-            <template #rawValue-cell="{ row }">
-              <span class="font-mono text-xs tabular-nums text-muted">{{
-                fmtNum(row.original.rawValue)
-              }}</span>
-            </template>
-            <template #value-cell="{ row }">
-              <span
-                class="font-mono text-sm font-semibold tabular-nums"
-                :style="{ color: rowValueColor(row.original.value) }"
-                >{{
-                  isDigital
-                    ? digitalLabel(row.original.value, ui)
-                    : fmtNum(row.original.value)
-                }}</span
-              >
-              <span
-                v-if="!isDigital && displayUnit(tag?.unit)"
-                class="text-[10px] text-muted ml-1 uppercase"
-                >{{ displayUnit(tag?.unit) }}</span
-              >
-            </template>
-            <template #empty>
-              <div
-                class="flex flex-col items-center justify-center gap-3 py-12 text-muted"
-              >
-                <UIcon :name="chartIcon" class="size-10 opacity-20" />
-                <span class="text-sm">Нет истории за выбранный период</span>
-                <!-- Последнее сохранённое значение (снимок /metrics/latest) —
-                     чтобы было что показать, пока история за период пуста. -->
-                <div
-                  v-if="liveMetric"
-                  class="flex flex-col items-center gap-0.5 mt-1"
-                >
-                  <span class="text-[10px] uppercase tracking-widest text-muted/60"
-                    >Последнее значение</span
-                  >
-                  <span
-                    class="font-mono text-lg font-semibold tabular-nums"
-                    :style="{ color: statusColor }"
-                  >
-                    {{ liveDisplay ?? "—" }}
-                    <span
-                      v-if="!isDigital && displayUnit(tag?.unit)"
-                      class="text-xs text-muted"
-                      >{{ displayUnit(tag?.unit) }}</span
-                    >
-                  </span>
-                  <span class="text-[10px] text-muted/60 font-mono">{{
-                    formatTs(new Date(liveMetric.time).getTime())
-                  }}</span>
-                </div>
-              </div>
-            </template>
-          </UTable>
-        </div>
+            <span class="text-xs uppercase tracking-widest text-muted">Период</span>
+            <USelect
+              v-model="selectedHours"
+              :items="rangeItems"
+              value-key="value"
+              size="xs"
+              class="w-40"
+            />
+          </div>
 
-        <!-- Pagination -->
-        <div
-          v-if="total > pageSize"
-          class="flex items-center justify-between border-t border-default px-4 py-2 shrink-0"
-        >
-          <span class="text-xs text-muted font-mono">
-            Page {{ page }} / {{ pageCount }}
-          </span>
-          <UPagination
-            v-model:page="page"
-            :total="total"
-            :items-per-page="pageSize"
-            :sibling-count="1"
-          />
-        </div>
+          <div class="flex-1 min-h-0 overflow-hidden p-4 flex flex-col">
+            <!-- Loading -->
+            <div
+              v-if="historyPending"
+              class="flex-1 flex items-center justify-center text-muted"
+            >
+              <div
+                class="size-6 border-2 border-current border-t-transparent rounded-full animate-spin"
+              />
+            </div>
+
+            <!-- No data → последнее сохранённое значение -->
+            <div
+              v-else-if="points.length === 0"
+              class="flex-1 flex flex-col items-center justify-center gap-3 text-muted"
+            >
+              <UIcon :name="chartIcon" class="size-10 opacity-20" />
+              <span class="text-sm">Нет истории за выбранный период</span>
+              <div
+                v-if="liveMetric"
+                class="flex flex-col items-center gap-0.5 mt-1"
+              >
+                <span class="text-[10px] uppercase tracking-widest text-muted/60"
+                  >Последнее значение</span
+                >
+                <span
+                  class="font-mono text-lg font-semibold tabular-nums"
+                  :style="{ color: statusColor }"
+                >
+                  {{ liveDisplay ?? "—" }}
+                  <span
+                    v-if="!isDigital && displayUnit(tag?.unit)"
+                    class="text-xs text-muted"
+                    >{{ displayUnit(tag?.unit) }}</span
+                  >
+                </span>
+                <span class="text-[10px] text-muted/60 font-mono">{{
+                  formatTs(new Date(liveMetric.time).getTime())
+                }}</span>
+              </div>
+            </div>
+
+            <!-- Chart. ВАЖНО: график абсолютно спозиционирован (inset-0), чтобы он НЕ
+                 влиял на высоту chartBox. Иначе useElementSize меряет контейнер, в
+                 который мы кладём элемент той же высоты → замкнутая петля → дёрганье.
+                 Так высота chartBox задаётся только flex-layout и стабильна. -->
+            <div v-else ref="chartBox" class="flex-1 min-h-0 relative">
+              <div class="absolute inset-0">
+                <ChartsMetricChart
+                  :points="points"
+                  :from="windowFrom"
+                  :to="windowTo"
+                  :unit="displayUnit(tag?.unit)"
+                  :color="accentColor"
+                  :range-hours="chartRangeHours"
+                  :thresholds="thresholds"
+                  :digital="isDigital"
+                  :height="chartHeight"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Table tab -->
+        <template v-else>
+          <div
+            class="flex items-center px-4 py-2 border-b border-default shrink-0"
+          >
+            <span class="ml-auto text-xs text-muted font-mono tabular-nums">
+              {{ total.toLocaleString("ru-RU") }} rows
+            </span>
+          </div>
+
+          <div class="flex-1 min-h-0 overflow-auto">
+            <UTable
+              :data="rows"
+              :columns="tableColumns"
+              :loading="rawPending"
+              class="w-full"
+              sticky
+            >
+              <template #time-cell="{ row }">
+                <span class="font-mono text-xs tabular-nums text-muted">{{
+                  fmtTime(row.original.time)
+                }}</span>
+              </template>
+              <template #rawValue-cell="{ row }">
+                <span class="font-mono text-xs tabular-nums text-muted">{{
+                  fmtNum(row.original.rawValue)
+                }}</span>
+              </template>
+              <template #value-cell="{ row }">
+                <span
+                  class="font-mono text-sm font-semibold tabular-nums"
+                  :style="{ color: rowValueColor(row.original.value) }"
+                  >{{
+                    isDigital
+                      ? digitalLabel(row.original.value, ui)
+                      : fmtNum(row.original.value)
+                  }}</span
+                >
+                <span
+                  v-if="!isDigital && displayUnit(tag?.unit)"
+                  class="text-[10px] text-muted ml-1 uppercase"
+                  >{{ displayUnit(tag?.unit) }}</span
+                >
+              </template>
+              <template #empty>
+                <div
+                  class="flex flex-col items-center justify-center gap-2 py-12 text-muted"
+                >
+                  <UIcon :name="viewTableIcon" class="size-10 opacity-20" />
+                  <span class="text-sm">Нет данных за выбранный период</span>
+                </div>
+              </template>
+            </UTable>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            v-if="total > pageSize"
+            class="flex items-center justify-between border-t border-default px-4 py-2 shrink-0"
+          >
+            <span class="text-xs text-muted font-mono">
+              Page {{ page }} / {{ pageCount }}
+            </span>
+            <UPagination
+              v-model:page="page"
+              :total="total"
+              :items-per-page="pageSize"
+              :sibling-count="1"
+            />
+          </div>
+        </template>
       </div>
 
       <!-- Right: details -->

@@ -160,20 +160,6 @@ const xFormatter = (i: number) => {
         minute: "2-digit",
       });
 };
-
-// vue-chrts не прокидывает x-аккессор в Crosshair → unovis спамит ошибку при
-// наведении. Дублируем индексный аккессор графика, сохранив дефолтный цвет.
-const crosshairConfig = { color: "#666", x: (_d: Point, i: number) => i };
-
-const tooltipTitleFormatter = (p: Point) =>
-  new Date(p.t).toLocaleString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 </script>
 
 <template>
@@ -189,13 +175,12 @@ const tooltipTitleFormatter = (p: Point) =>
       :line-width="2"
       :x-formatter="xFormatter"
       :y-formatter="yFormatter"
-      :tooltip-title-formatter="tooltipTitleFormatter"
-      :crosshair-config="crosshairConfig"
       :y-grid-line="true"
       :x-num-ticks="6"
       :y-num-ticks="5"
       :duration="0"
       hide-legend
+      hide-tooltip
     />
 
     <!-- Пороговые линии поверх графика -->
