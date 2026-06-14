@@ -54,6 +54,15 @@ export function evaluateTagStatus(
   return "normal";
 }
 
+/**
+ * Единица для вывода: пустая строка, если unit не задан или равен плейсхолдеру
+ * "UnknownUnit" (бэкенд-дефолт для NULL). Страховка от протечки плейсхолдера в UI.
+ */
+export function displayUnit(unit: string | null | undefined): string {
+  if (!unit || unit.trim().toLowerCase() === "unknownunit") return "";
+  return unit;
+}
+
 /** Резолвит цвет тега: кастомный из uiConfig.color, иначе — цвет по типу данных. */
 export function resolveTagColor(
   ui: TagUiConfig | null | undefined,

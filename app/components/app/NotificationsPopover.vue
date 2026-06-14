@@ -4,6 +4,7 @@ import {
   deleteIcon,
   notificationActiveIcon,
   notificationIcon,
+  notificationMutedIcon,
 } from "~/core/icons-map";
 
 const notifications = useNotificationsStore();
@@ -47,6 +48,21 @@ const notifications = useNotificationsStore();
             >Notifications</span
           >
           <div class="flex gap-1">
+            <CustomTooltip
+              :text="notifications.muted ? 'Включить тосты' : 'Без звука'"
+            >
+              <UButton
+                :icon="
+                  notifications.muted
+                    ? notificationMutedIcon
+                    : notificationActiveIcon
+                "
+                size="xs"
+                variant="ghost"
+                :color="notifications.muted ? 'warning' : 'neutral'"
+                @click="notifications.muted = !notifications.muted"
+              />
+            </CustomTooltip>
             <UButton
               :icon="checkIcon"
               size="xs"

@@ -10,14 +10,14 @@ import {
   paletteIcon,
   reloadIcon,
   timerIcon,
-  viewCardsIcon,
-  viewTableIcon,
   warningIcon,
 } from "~/core/icons-map";
 import type { TagSettings } from "~/types/models";
+import type { RawMetric } from "~/types/api";
 import { isWritableTag, toUpdateTagDto, type WritableTag } from "~/utils/tag";
 import {
   digitalLabel,
+  displayUnit,
   evaluateTagStatus,
   resolveTagColor,
   STATUS_COLOR,
@@ -95,105 +95,65 @@ const STATUS_LABEL: Record<string, string> = {
   unknown: "No data",
 };
 
-// --- History ---
+// --- Raw metrics (paginated /api/metrics/raw) ---
 
-const RANGES = [
-  { label: "1h", hours: 1 },
-  { label: "6h", hours: 6 },
-  { label: "24h", hours: 24 },
-  { label: "7d", hours: 168 },
-  { label: "30d", hours: 720 },
-] as const;
+// hours=0 («Всё время») — без нижней границы; иначе окно от now-hours.
+const rangeItems = [
+  { label: "Последний час", value: 1 },
+  { label: "24 часа", value: 24 },
+  { label: "7 дней", value: 168 },
+  { label: "30 дней", value: 720 },
+  { label: "Всё время", value: 0 },
+];
 
-const selectedRange = ref<(typeof RANGES)[number]>(RANGES[0]);
-const historyPending = ref(false);
-const points = ref<[number, number][]>([]);
+const selectedHours = ref<number>(24);
+const page = ref(1);
+const pageSize = 50;
 
-type ViewMode = "chart" | "table";
-const viewMode = ref<ViewMode>("chart");
+const rows = ref<RawMetric[]>([]);
+const total = ref(0);
+const rawPending = ref(false);
 
-// Высота графика — от фактической высоты контейнера (а не фикс. 420px):
-// заполняет экран и пересчитывается при переключении ширины (useLayout).
-const chartBox = ref<HTMLElement | null>(null);
-const { height: chartBoxHeight } = useElementSize(chartBox);
-const chartHeight = computed(() =>
-  Math.max(280, Math.floor(chartBoxHeight.value || 0)),
-);
-
-// Границы окна графика (unix_ms): ось X покрывает весь запрошенный диапазон,
-// а не только промежуток имеющихся точек — иначе на 30d редкие данные врут о масштабе.
-const windowFrom = ref(0);
-const windowTo = ref(0);
-
-const fetchHistory = async () => {
-  const to = new Date();
-  const from = new Date(to.getTime() - selectedRange.value.hours * 3_600_000);
-  windowFrom.value = from.getTime();
-  windowTo.value = to.getTime();
-  historyPending.value = true;
+const fetchRaw = async () => {
+  rawPending.value = true;
   try {
-    const raw = await api.metrics.getHistory({
+    const from =
+      selectedHours.value > 0
+        ? new Date(Date.now() - selectedHours.value * 3_600_000).toISOString()
+        : undefined;
+
+    const res = await api.metrics.getRaw({
       tagId,
-      from: from.toISOString(),
-      to: to.toISOString(),
+      from,
+      page: page.value,
+      pageSize,
     });
-    points.value = (raw as unknown as [number, number][]) ?? [];
-    liveBuffer = []; // снимок свежий — копившиеся точки больше не нужны
+    rows.value = res.items;
+    total.value = res.total;
   } finally {
-    historyPending.value = false;
+    rawPending.value = false;
   }
 };
 
-watch(selectedRange, fetchHistory);
-onMounted(fetchHistory);
+const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)));
 
-// Продлеваем график живыми метриками: история — снимок на момент загрузки.
-// Точки копим в буфер и вливаем пачкой по таймеру: поштучная дорисовка каждую
-// секунду заставляла unovis перерисовывать весь SVG и дёргала layout страницы.
-// Верхний дисплей значения обновляется мгновенно — он читает liveMetric напрямую.
-let liveBuffer: [number, number][] = [];
-
-watch(liveMetric, (m) => {
-  if (!m) return;
-  const ts = Date.parse(m.time);
-  if (!Number.isFinite(ts)) return;
-  const lastTs =
-    liveBuffer[liveBuffer.length - 1]?.[0] ??
-    points.value[points.value.length - 1]?.[0];
-  if (lastTs != null && lastTs >= ts) return; // дубль или устаревшая точка
-  liveBuffer.push([ts, m.value]);
+// Смена периода сбрасывает на первую страницу; смена страницы — догружает.
+watch(selectedHours, () => {
+  page.value = 1;
+  fetchRaw();
 });
+watch(page, fetchRaw);
+onMounted(fetchRaw);
 
-const flushLive = () => {
-  if (liveBuffer.length === 0) return;
-  points.value = [...points.value, ...liveBuffer];
-  const lastTs = liveBuffer[liveBuffer.length - 1]![0];
-  if (lastTs > windowTo.value) windowTo.value = lastTs; // правый край тянется за live
-  liveBuffer = [];
+// Цвет значения в таблице по статусу относительно порогов — та же логика, что и
+// у live-значения справа (critical/warning → STATUS_COLOR, normal → акцент тега).
+const rowValueColor = (v: number): string | undefined => {
+  const level = evaluateTagStatus(v, tag.value?.dataType, ui.value);
+  if (level === "critical") return STATUS_COLOR.critical;
+  if (level === "warning") return STATUS_COLOR.warning;
+  if (level === "normal") return accentColor.value;
+  return undefined;
 };
-
-let flushTimer: ReturnType<typeof setInterval> | undefined;
-onMounted(() => {
-  flushTimer = setInterval(flushLive, 3000);
-});
-onBeforeUnmount(() => {
-  if (flushTimer) clearInterval(flushTimer);
-});
-
-// --- Range statistics ---
-
-const stats = computed(() => {
-  const vals = points.value.map((p) => p[1]);
-  if (vals.length === 0) return null;
-  const sum = vals.reduce((a, b) => a + b, 0);
-  return {
-    count: vals.length,
-    min: Math.min(...vals),
-    max: Math.max(...vals),
-    avg: sum / vals.length,
-    last: vals[vals.length - 1]!,
-  };
-});
 
 // --- Supervisory write ---
 
@@ -255,10 +215,20 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
 
 // --- Formatting ---
 
-const tableRows = computed(() =>
-  [...points.value].reverse().map(([t, value]) => ({ t, value })),
-);
+const fmtTime = (iso: string) =>
+  new Date(iso).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
+const fmtNum = (v: number | null | undefined) =>
+  v == null ? "—" : Number(v.toFixed(3)).toString();
+
+// Время для компактных списков (команды, live) — без года.
 const formatTs = (t: number) =>
   new Date(t).toLocaleString("ru-RU", {
     day: "2-digit",
@@ -268,14 +238,12 @@ const formatTs = (t: number) =>
     second: "2-digit",
   });
 
-const formatVal = (v: number) =>
-  isDigital.value ? (v >= 0.5 ? "1" : "0") : Number(v).toFixed(3);
-
 const formatDate = (s?: string) =>
   s ? new Date(s).toLocaleString("ru-RU") : "—";
 
 const tableColumns = [
-  { accessorKey: "t", header: "Time" },
+  { accessorKey: "time", header: "Time" },
+  { accessorKey: "rawValue", header: "Raw" },
   { accessorKey: "value", header: "Value" },
 ];
 </script>
@@ -350,8 +318,8 @@ const tableColumns = [
           variant="ghost"
           color="neutral"
           size="sm"
-          :disabled="pending || historyPending"
-          @click="refresh(); fetchHistory()"
+          :disabled="pending || rawPending"
+          @click="refresh(); fetchRaw()"
         />
         <UBadge
           :color="rt.isConnected ? 'success' : 'neutral'"
@@ -366,127 +334,111 @@ const tableColumns = [
     </div>
 
     <div class="flex h-full min-h-0">
-      <!-- Left: history -->
+      <!-- Left: raw metrics table -->
       <div class="flex-3 min-w-0 h-full min-h-0 flex flex-col">
         <div
-          class="flex items-center gap-2 px-4 py-2.5 border-b border-default flex-wrap"
+          class="flex items-center gap-2 px-4 py-2.5 border-b border-default flex-wrap shrink-0"
         >
           <UIcon :name="chartIcon" class="size-5 text-muted" />
-          <span class="text-base font-semibold">History</span>
-          <UBadge color="neutral" variant="outline" size="sm" class="font-mono">
-            {{ points.length }}
-          </UBadge>
+          <span class="text-base font-semibold">Raw metrics</span>
 
-          <div class="flex gap-1 ml-2">
-            <UButton
-              v-for="r in RANGES"
-              :key="r.label"
-              :label="r.label"
-              size="xs"
-              :variant="selectedRange === r ? 'solid' : 'outline'"
-              :color="selectedRange === r ? 'primary' : 'neutral'"
-              @click="selectedRange = r"
-            />
-          </div>
+          <USelect
+            v-model="selectedHours"
+            :items="rangeItems"
+            value-key="value"
+            size="xs"
+            class="ml-2 w-40"
+          />
 
-          <div class="flex items-center gap-1 ml-auto">
-            <UButton
-              :icon="viewCardsIcon"
-              size="xs"
-              variant="ghost"
-              :color="viewMode === 'chart' ? 'primary' : 'neutral'"
-              @click="viewMode = 'chart'"
-            />
-            <UButton
-              :icon="viewTableIcon"
-              size="xs"
-              variant="ghost"
-              :color="viewMode === 'table' ? 'primary' : 'neutral'"
-              @click="viewMode = 'table'"
-            />
-          </div>
+          <span class="ml-auto text-xs text-muted font-mono tabular-nums">
+            {{ total.toLocaleString("ru-RU") }} rows
+          </span>
         </div>
 
-        <!-- Stats strip -->
+        <!-- Table -->
+        <div class="flex-1 min-h-0 overflow-auto">
+          <UTable
+            :data="rows"
+            :columns="tableColumns"
+            :loading="rawPending"
+            class="w-full"
+            sticky
+          >
+            <template #time-cell="{ row }">
+              <span class="font-mono text-xs tabular-nums text-muted">{{
+                fmtTime(row.original.time)
+              }}</span>
+            </template>
+            <template #rawValue-cell="{ row }">
+              <span class="font-mono text-xs tabular-nums text-muted">{{
+                fmtNum(row.original.rawValue)
+              }}</span>
+            </template>
+            <template #value-cell="{ row }">
+              <span
+                class="font-mono text-sm font-semibold tabular-nums"
+                :style="{ color: rowValueColor(row.original.value) }"
+                >{{
+                  isDigital
+                    ? digitalLabel(row.original.value, ui)
+                    : fmtNum(row.original.value)
+                }}</span
+              >
+              <span
+                v-if="!isDigital && displayUnit(tag?.unit)"
+                class="text-[10px] text-muted ml-1 uppercase"
+                >{{ displayUnit(tag?.unit) }}</span
+              >
+            </template>
+            <template #empty>
+              <div
+                class="flex flex-col items-center justify-center gap-3 py-12 text-muted"
+              >
+                <UIcon :name="chartIcon" class="size-10 opacity-20" />
+                <span class="text-sm">Нет истории за выбранный период</span>
+                <!-- Последнее сохранённое значение (снимок /metrics/latest) —
+                     чтобы было что показать, пока история за период пуста. -->
+                <div
+                  v-if="liveMetric"
+                  class="flex flex-col items-center gap-0.5 mt-1"
+                >
+                  <span class="text-[10px] uppercase tracking-widest text-muted/60"
+                    >Последнее значение</span
+                  >
+                  <span
+                    class="font-mono text-lg font-semibold tabular-nums"
+                    :style="{ color: statusColor }"
+                  >
+                    {{ liveDisplay ?? "—" }}
+                    <span
+                      v-if="!isDigital && displayUnit(tag?.unit)"
+                      class="text-xs text-muted"
+                      >{{ displayUnit(tag?.unit) }}</span
+                    >
+                  </span>
+                  <span class="text-[10px] text-muted/60 font-mono">{{
+                    formatTs(new Date(liveMetric.time).getTime())
+                  }}</span>
+                </div>
+              </div>
+            </template>
+          </UTable>
+        </div>
+
+        <!-- Pagination -->
         <div
-          v-if="stats"
-          class="grid grid-cols-4 divide-x divide-default border-b border-default shrink-0"
+          v-if="total > pageSize"
+          class="flex items-center justify-between border-t border-default px-4 py-2 shrink-0"
         >
-          <div class="flex flex-col px-4 py-2">
-            <span class="text-[10px] uppercase tracking-widest text-muted">Min</span>
-            <span class="font-mono text-sm tabular-nums">{{ formatVal(stats.min) }}</span>
-          </div>
-          <div class="flex flex-col px-4 py-2">
-            <span class="text-[10px] uppercase tracking-widest text-muted">Avg</span>
-            <span class="font-mono text-sm tabular-nums">{{ formatVal(stats.avg) }}</span>
-          </div>
-          <div class="flex flex-col px-4 py-2">
-            <span class="text-[10px] uppercase tracking-widest text-muted">Max</span>
-            <span class="font-mono text-sm tabular-nums">{{ formatVal(stats.max) }}</span>
-          </div>
-          <div class="flex flex-col px-4 py-2">
-            <span class="text-[10px] uppercase tracking-widest text-muted">Last</span>
-            <span class="font-mono text-sm tabular-nums">{{ formatVal(stats.last) }}</span>
-          </div>
-        </div>
-
-        <div class="flex-1 min-h-0 overflow-hidden p-4 flex flex-col">
-          <!-- Loading -->
-          <div
-            v-if="historyPending"
-            class="flex-1 flex items-center justify-center text-muted"
-          >
-            <div
-              class="size-6 border-2 border-current border-t-transparent rounded-full animate-spin"
-            />
-          </div>
-
-          <!-- No data -->
-          <div
-            v-else-if="points.length === 0"
-            class="flex-1 flex flex-col items-center justify-center gap-2 text-muted"
-          >
-            <UIcon :name="chartIcon" class="size-10 opacity-20" />
-            <span class="text-sm">No data for selected range</span>
-          </div>
-
-          <!-- Chart -->
-          <div
-            v-else-if="viewMode === 'chart'"
-            ref="chartBox"
-            class="flex-1 min-h-0"
-          >
-            <ChartsMetricChart
-              :points="points"
-              :from="windowFrom"
-              :to="windowTo"
-              :unit="tag?.unit ?? ''"
-              :color="accentColor"
-              :range-hours="selectedRange.hours"
-              :thresholds="thresholds"
-              :digital="isDigital"
-              :height="chartHeight"
-            />
-          </div>
-
-          <!-- Table -->
-          <div v-else class="flex-1 min-h-0 overflow-y-auto">
-            <UTable :data="tableRows" :columns="tableColumns" class="w-full" sticky>
-              <template #t-cell="{ row }">
-                <span class="font-mono text-xs text-muted">{{
-                  formatTs(row.original.t)
-                }}</span>
-              </template>
-              <template #value-cell="{ row }">
-                <span class="font-mono text-sm tabular-nums">{{
-                  formatVal(row.original.value)
-                }}</span>
-                <span v-if="tag?.unit" class="text-xs text-muted ml-1">{{
-                  tag.unit
-                }}</span>
-              </template>
-            </UTable>
-          </div>
+          <span class="text-xs text-muted font-mono">
+            Page {{ page }} / {{ pageCount }}
+          </span>
+          <UPagination
+            v-model:page="page"
+            :total="total"
+            :items-per-page="pageSize"
+            :sibling-count="1"
+          />
         </div>
       </div>
 

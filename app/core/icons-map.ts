@@ -69,6 +69,7 @@ const icons = {
   checkIcon: "ph:check",
   notificationIcon: "ph:bell",
   notificationActiveIcon: "ph:bell-ringing",
+  notificationMutedIcon: "ph:bell-slash",
 
   // Actions & Operations
   settingsIcon: "ph:gear",
@@ -161,6 +162,7 @@ export const {
   checkIcon,
   notificationIcon,
   notificationActiveIcon,
+  notificationMutedIcon,
   settingsIcon,
   editIcon,
   deleteIcon,

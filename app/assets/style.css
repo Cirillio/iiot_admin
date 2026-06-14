@@ -15,6 +15,16 @@
 @source inline("{bg-{neutral,amber,rose,sky}-500/{10},ring-{neutral,amber,rose,sky}-500/{50},text-{neutral,amber,rose,sky}-{400,500}}");
 
 @layer base {
+  /* Опора высоты для всей цепочки h-full/size-full в layout и страницах.
+     Без height:100% на корне `h-full` вырождается в auto → высота определяется
+     контентом. На странице датчика это замыкает петлю useElementSize ↔ высота
+     графика (контейнер кормит измерение, измерение раздувает контейнер). */
+  html,
+  body,
+  #__nuxt {
+    height: 100%;
+  }
+
   html,
   body {
     scroll-behavior: smooth;

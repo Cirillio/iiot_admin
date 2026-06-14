@@ -4,6 +4,7 @@ import type { TagSettings } from "~/types/models";
 import { registerBadge } from "~/utils/tag";
 import {
   digitalLabel,
+  displayUnit,
   evaluateTagStatus,
   resolveTagColor,
   STATUS_COLOR,
@@ -23,6 +24,7 @@ const metric = computed(() =>
 const rawValue = computed(() => metric.value?.value ?? null);
 const isDigital = computed(() => props.item.dataType === "DIGITAL");
 const ui = computed(() => props.item.uiConfigJson ?? null);
+const unitLabel = computed(() => displayUnit(props.item.unit));
 
 const status = computed(() =>
   evaluateTagStatus(rawValue.value, props.item.dataType, ui.value),
@@ -108,10 +110,10 @@ const regBadge = computed(() => registerBadge(props.item.registerType));
         {{ displayValue ?? "—" }}
       </span>
       <span
-        v-if="item.unit && !isDigital"
+        v-if="unitLabel && !isDigital"
         class="text-xs text-muted uppercase tracking-wider font-mono"
       >
-        {{ item.unit }}
+        {{ unitLabel }}
       </span>
     </div>
 

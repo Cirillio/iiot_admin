@@ -175,12 +175,49 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description OK */
-                200: {
+                /** @description Accepted */
+                202: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["DeviceCommand"];
+                        "application/json": components["schemas"]["DeviceCommand"];
+                        "text/json": components["schemas"]["DeviceCommand"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": unknown;
+                        "application/json": unknown;
+                        "text/json": unknown;
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": unknown;
+                        "application/json": unknown;
+                        "text/json": unknown;
+                    };
+                };
+                /** @description Service Unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": unknown;
+                        "application/json": unknown;
+                        "text/json": unknown;
+                    };
                 };
             };
         };
@@ -368,6 +405,82 @@ export interface paths {
                         "text/plain": unknown[][];
                         "application/json": unknown[][];
                         "text/json": unknown[][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/metrics/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/metrics/raw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    tagId?: number;
+                    from?: string;
+                    to?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["RawMetricDtoPagedResult"];
+                        "application/json": components["schemas"]["RawMetricDtoPagedResult"];
+                        "text/json": components["schemas"]["RawMetricDtoPagedResult"];
                     };
                 };
             };
@@ -667,6 +780,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        CommandStatus: "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED";
         CreateConnectionDto: {
             ipAddress?: string | null;
             /** Format: int32 */
@@ -779,6 +894,21 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        DeviceCommand: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: int32 */
+            tagId?: number;
+            /** Format: double */
+            value?: number;
+            operatorId?: string | null;
+            status?: components["schemas"]["CommandStatus"];
+            errorMessage?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         ModbusConnection: {
             /** Format: int32 */
             id?: number;
@@ -793,6 +923,27 @@ export interface components {
         ModbusRegisterType: "INPUT_REGISTER" | "HOLDING_REGISTER" | "DISCRETE_INPUT" | "COIL";
         /** @enum {string} */
         RawDataType: "INT16" | "U_INT16" | "INT32" | "U_INT32" | "FLOAT32" | "FLOAT64";
+        RawMetricDto: {
+            /** Format: int32 */
+            tagId?: number;
+            tagName?: string | null;
+            unit?: string | null;
+            /** Format: date-time */
+            time?: string;
+            /** Format: double */
+            rawValue?: number | null;
+            /** Format: double */
+            value?: number;
+        };
+        RawMetricDtoPagedResult: {
+            items?: components["schemas"]["RawMetricDto"][] | null;
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            pageSize?: number;
+        };
         /** @enum {string} */
         ServiceStatus: "ONLINE" | "OFFLINE" | "DEGRADED" | "CRITICAL_ERROR" | "MAINTENANCE";
         SystemConfig: {

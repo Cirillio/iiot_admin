@@ -10,6 +10,7 @@ import {
   tagIcon,
 } from "~/core/icons-map";
 import type { TagDataType } from "~/types/models";
+import { displayUnit } from "~/utils/tagStatus";
 
 const TYPE_DOT: Record<TagDataType, string> = {
   ANALOG_RAW: "bg-info-500",
@@ -335,9 +336,9 @@ const greeting = computed(() => {
                   {{ getMetricValue(tag.tagId) ?? "—" }}
                 </span>
                 <span
-                  v-if="tag.unit"
+                  v-if="displayUnit(tag.unit)"
                   class="text-[10px] text-muted uppercase"
-                  >{{ tag.unit }}</span
+                  >{{ displayUnit(tag.unit) }}</span
                 >
               </div>
             </div>

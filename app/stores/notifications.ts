@@ -41,6 +41,9 @@ export const useNotificationsStore = defineStore("Notifications", () => {
 
   const items = ref<Notification[]>([]);
 
+  // Режим «без звука»: тосты не всплывают, но история и журнал ведутся.
+  const muted = useLocalStorage("iiot-notifications-muted", false);
+
   const unreadCount = computed(() => items.value.filter((n) => !n.read).length);
   const hasUnreadErrors = computed(() =>
     items.value.some((n) => !n.read && n.level === "CRITICAL"),
@@ -62,12 +65,14 @@ export const useNotificationsStore = defineStore("Notifications", () => {
 
     items.value.unshift(notification);
 
-    toast.add({
-      title,
-      description: message,
-      color: TOAST_COLOR_MAP[level],
-      duration: TOAST_DURATION_MAP[level],
-    });
+    if (!muted.value) {
+      toast.add({
+        title,
+        description: message,
+        color: TOAST_COLOR_MAP[level],
+        duration: TOAST_DURATION_MAP[level],
+      });
+    }
 
     // Каждое уведомление попадает в журнал — попап показывает только последние.
     appLogger.log[LOG_STATUS_MAP[level]](title, message);
@@ -85,6 +90,7 @@ export const useNotificationsStore = defineStore("Notifications", () => {
 
   return {
     items,
+    muted,
     unreadCount,
     hasUnreadErrors,
     add,

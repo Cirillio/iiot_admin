@@ -7,7 +7,9 @@
   "paths": {
     "/api/connections": {
       "get": {
-        "tags": ["Connections"],
+        "tags": [
+          "Connections"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -41,7 +43,9 @@
         }
       },
       "post": {
-        "tags": ["Connections"],
+        "tags": [
+          "Connections"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -90,7 +94,9 @@
     },
     "/api/connections/{id}": {
       "get": {
-        "tags": ["Connections"],
+        "tags": [
+          "Connections"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -126,7 +132,9 @@
         }
       },
       "put": {
-        "tags": ["Connections"],
+        "tags": [
+          "Connections"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -164,7 +172,9 @@
         }
       },
       "delete": {
-        "tags": ["Connections"],
+        "tags": [
+          "Connections"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -185,7 +195,9 @@
     },
     "/api/v1/control/write": {
       "post": {
-        "tags": ["Control"],
+        "tags": [
+          "Control"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -206,15 +218,76 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "OK"
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCommand"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCommand"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceCommand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": { }
+              },
+              "application/json": {
+                "schema": { }
+              },
+              "text/json": {
+                "schema": { }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": { }
+              },
+              "application/json": {
+                "schema": { }
+              },
+              "text/json": {
+                "schema": { }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "text/plain": {
+                "schema": { }
+              },
+              "application/json": {
+                "schema": { }
+              },
+              "text/json": {
+                "schema": { }
+              }
+            }
           }
         }
       }
     },
     "/api/devices": {
       "get": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -258,7 +331,9 @@
         }
       },
       "post": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -307,7 +382,9 @@
     },
     "/api/devices/{id}": {
       "get": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -343,7 +420,9 @@
         }
       },
       "put": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -381,7 +460,9 @@
         }
       },
       "delete": {
-        "tags": ["Devices"],
+        "tags": [
+          "Devices"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -402,7 +483,9 @@
     },
     "/api/metrics/history": {
       "get": {
-        "tags": ["Metrics"],
+        "tags": [
+          "Metrics"
+        ],
         "parameters": [
           {
             "name": "tagId",
@@ -438,7 +521,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
                 }
               },
@@ -447,7 +530,7 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
                 }
               },
@@ -456,8 +539,93 @@
                   "type": "array",
                   "items": {
                     "type": "array",
-                    "items": {}
+                    "items": { }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics/latest": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/metrics/raw": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "parameters": [
+          {
+            "name": "tagId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawMetricDtoPagedResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawMetricDtoPagedResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawMetricDtoPagedResult"
                 }
               }
             }
@@ -467,7 +635,9 @@
     },
     "/api/system/config": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -492,7 +662,9 @@
         }
       },
       "put": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -521,7 +693,9 @@
     },
     "/api/system/status": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -557,7 +731,9 @@
     },
     "/api/tags": {
       "get": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -591,7 +767,9 @@
         }
       },
       "post": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -640,7 +818,9 @@
     },
     "/api/tags/{id}": {
       "get": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -676,7 +856,9 @@
         }
       },
       "put": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -714,7 +896,9 @@
         }
       },
       "delete": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -735,7 +919,9 @@
     },
     "/api/tags/device/{deviceId}": {
       "get": {
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "deviceId",
@@ -783,6 +969,15 @@
   },
   "components": {
     "schemas": {
+      "CommandStatus": {
+        "enum": [
+          "PENDING",
+          "PROCESSING",
+          "SUCCESS",
+          "FAILED"
+        ],
+        "type": "string"
+      },
       "CreateConnectionDto": {
         "type": "object",
         "properties": {
@@ -949,6 +1144,14 @@
           "isActive": {
             "type": "boolean"
           },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1051,7 +1254,56 @@
           "isActive": {
             "type": "boolean"
           },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastConnError": {
+            "type": "string",
+            "nullable": true
+          },
           "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeviceCommand": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tagId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "operatorId": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/CommandStatus"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -1081,7 +1333,12 @@
         "additionalProperties": false
       },
       "ModbusEndianness": {
-        "enum": ["BIG_ENDIAN", "LITTLE_ENDIAN", "WORD_SWAP", "BYTE_WORD_SWAP"],
+        "enum": [
+          "BIG_ENDIAN",
+          "LITTLE_ENDIAN",
+          "WORD_SWAP",
+          "BYTE_WORD_SWAP"
+        ],
         "type": "string"
       },
       "ModbusRegisterType": {
@@ -1094,8 +1351,71 @@
         "type": "string"
       },
       "RawDataType": {
-        "enum": ["INT16", "U_INT16", "INT32", "U_INT32", "FLOAT32", "FLOAT64"],
+        "enum": [
+          "INT16",
+          "U_INT16",
+          "INT32",
+          "U_INT32",
+          "FLOAT32",
+          "FLOAT64"
+        ],
         "type": "string"
+      },
+      "RawMetricDto": {
+        "type": "object",
+        "properties": {
+          "tagId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagName": {
+            "type": "string",
+            "nullable": true
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rawValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawMetricDtoPagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawMetricDto"
+            },
+            "nullable": true
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
       },
       "ServiceStatus": {
         "enum": [
@@ -1175,7 +1495,11 @@
         "additionalProperties": false
       },
       "TagDataType": {
-        "enum": ["ANALOG_RAW", "ANALOG_PHYSICAL", "DIGITAL"],
+        "enum": [
+          "ANALOG_RAW",
+          "ANALOG_PHYSICAL",
+          "DIGITAL"
+        ],
         "type": "string"
       },
       "TagSettings": {

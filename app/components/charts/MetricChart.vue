@@ -83,18 +83,24 @@ const data = computed<Point[]>(() => {
   return out;
 });
 
+// Домен берём по фактическим замерам (props.points), а НЕ по ресемплу data:
+// иначе сдвиг окна каждые 3 с чуть меняет интерполяцию на краях → границы дрожат →
+// всё полотно прыгает по вертикали. Одним проходом, без spread (Math.min(...arr)
+// роняет RangeError на тысячах точек в 7d/30d).
 const yDomain = computed<[number, number]>(() => {
   if (props.digital) return [-0.08, 1.08];
 
-  const vals = data.value
-    .map((p) => p.value)
-    .filter((v): v is number => v != null);
-  const thr = props.thresholds.map((t) => t.value);
-  const all = [...vals, ...thr];
-  if (all.length === 0) return [0, 1];
-
-  let lo = Math.min(...all);
-  let hi = Math.max(...all);
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const [, v] of props.points) {
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  for (const t of props.thresholds) {
+    if (t.value < lo) lo = t.value;
+    if (t.value > hi) hi = t.value;
+  }
+  if (!Number.isFinite(lo)) return [0, 1];
   if (lo === hi) {
     lo -= 1;
     hi += 1;
