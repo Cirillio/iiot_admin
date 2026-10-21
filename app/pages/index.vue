@@ -318,13 +318,14 @@ const greeting = computed(() => {
                 </span>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <ChartsSparkline
-                  v-if="tag.tagId != null"
-                  :values="rt.getTrend(tag.tagId)"
-                  :color="tagColor(tag.dataType)"
-                  :height="18"
-                  class="w-14"
-                />
+                <!-- Фиксированная ширина задаётся обёрткой: внутри shrink-0 у графика нет своей ширины -->
+                <div v-if="tag.tagId != null" class="w-14 shrink-0">
+                  <ChartsSparkline
+                    :values="rt.getTrend(tag.tagId)"
+                    :color="tagColor(tag.dataType)"
+                    :height="18"
+                  />
+                </div>
                 <span
                   class="text-[11px] font-mono tabular-nums"
                   :class="

@@ -52,7 +52,7 @@ const PAD = { top: 2, right: 0, bottom: 2, left: 0 };
 </script>
 
 <template>
-  <div class="w-full" :style="{ height: `${height}px` }">
+  <div class="w-full min-w-0 overflow-hidden" :style="{ height: `${height}px` }">
     <AreaChart
       v-if="data.length > 1"
       :data="data"
