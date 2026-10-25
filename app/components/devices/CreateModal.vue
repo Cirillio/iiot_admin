@@ -51,9 +51,30 @@ const connectionOptions = computed(() =>
   })),
 );
 
+const errors = computed(() => {
+  const errs: Record<string, string> = {};
+  if (!form.name.trim()) {
+    errs.name = "Device name is required";
+  } else if (form.name.length > 100) {
+    errs.name = "Device name cannot exceed 100 characters";
+  }
+  if (!form.connectionId || form.connectionId <= 0) {
+    errs.connectionId = "Please select a connection";
+  }
+  if (!form.slaveId || form.slaveId < 1 || form.slaveId > 247) {
+    errs.slaveId = "Slave ID must be between 1 and 247";
+  }
+  if (!form.maxRegisterSpan || form.maxRegisterSpan < 1 || form.maxRegisterSpan > 2000) {
+    errs.maxRegisterSpan = "Span must be between 1 and 2000";
+  }
+  return errs;
+});
+
+const isValid = computed(() => Object.keys(errors.value).length === 0);
+
 const handleSubmit = () => {
+  if (!isValid.value) return;
   emits("submit", { ...form });
-  emits("update:open", false);
 };
 </script>
 
@@ -73,7 +94,7 @@ const handleSubmit = () => {
         <USeparator />
 
         <div class="grid grid-cols-2 gap-4">
-          <UFormField label="Name" class="col-span-2">
+          <UFormField label="Name" :error="form.name ? errors.name : undefined" class="col-span-2">
             <UInput
               v-model="form.name"
               placeholder="ADAM-6017 Line A"
@@ -81,7 +102,7 @@ const handleSubmit = () => {
             />
           </UFormField>
 
-          <UFormField label="Connection" class="col-span-2">
+          <UFormField label="Connection" :error="errors.connectionId" class="col-span-2">
             <USelect
               v-model="form.connectionId"
               :items="connectionOptions"
@@ -90,12 +111,12 @@ const handleSubmit = () => {
             />
           </UFormField>
 
-          <UFormField label="Slave ID">
-            <UInput v-model="form.slaveId" type="number" class="w-full" />
+          <UFormField label="Slave ID" :error="errors.slaveId">
+            <UInput v-model="form.slaveId" type="number" :min="1" :max="247" class="w-full" />
           </UFormField>
 
-          <UFormField label="Max register span">
-            <UInput v-model="form.maxRegisterSpan" type="number" class="w-full" />
+          <UFormField label="Max register span" :error="errors.maxRegisterSpan">
+            <UInput v-model="form.maxRegisterSpan" type="number" :min="1" :max="2000" class="w-full" />
           </UFormField>
 
           <UFormField
@@ -125,7 +146,12 @@ const handleSubmit = () => {
             variant="ghost"
             @click="emits('update:open', false)"
           />
-          <UButton label="Create" :leading-icon="saveIcon" @click="handleSubmit" />
+          <UButton
+            label="Create"
+            :leading-icon="saveIcon"
+            :disabled="!isValid"
+            @click="handleSubmit"
+          />
         </div>
       </div>
     </template>

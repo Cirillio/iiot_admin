@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { paletteIcon, saveIcon } from "~/core/icons-map";
-import type { TagSettings, TagUiConfig } from "~/types/models";
+import type { TagSettings } from "~/types/models";
 import { serializeUiConfig, toUpdateTagDto } from "~/utils/tag";
 
 const props = defineProps<{
@@ -18,31 +18,41 @@ const notifications = useNotificationsStore();
 
 const isDigital = computed(() => props.tag?.dataType === "DIGITAL");
 
-const form = reactive<TagUiConfig>({
-  color: null,
+const form = reactive<{
+  color?: string;
+  minCritical: number | null;
+  minWarning: number | null;
+  maxWarning: number | null;
+  maxCritical: number | null;
+  digitalWarning: number | null;
+  digitalCritical: number | null;
+  labelZero?: string;
+  labelOne?: string;
+}>({
+  color: undefined,
   minCritical: null,
   minWarning: null,
   maxWarning: null,
   maxCritical: null,
   digitalWarning: null,
   digitalCritical: null,
-  labelZero: null,
-  labelOne: null,
+  labelZero: undefined,
+  labelOne: undefined,
 });
 
 watch(
   () => props.tag,
   (t) => {
     const ui = t?.uiConfigJson ?? {};
-    form.color = ui.color ?? null;
+    form.color = ui.color ?? undefined;
     form.minCritical = ui.minCritical ?? null;
     form.minWarning = ui.minWarning ?? null;
     form.maxWarning = ui.maxWarning ?? null;
     form.maxCritical = ui.maxCritical ?? null;
     form.digitalWarning = ui.digitalWarning ?? null;
     form.digitalCritical = ui.digitalCritical ?? null;
-    form.labelZero = ui.labelZero ?? null;
-    form.labelOne = ui.labelOne ?? null;
+    form.labelZero = ui.labelZero ?? undefined;
+    form.labelOne = ui.labelOne ?? undefined;
   },
   { immediate: true },
 );
@@ -118,7 +128,7 @@ const handleSubmit = async () => {
               size="xs"
               variant="ghost"
               color="neutral"
-              @click="form.color = null"
+              @click="() => { form.color = undefined }"
             />
           </div>
         </UFormField>

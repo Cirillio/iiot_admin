@@ -11,6 +11,15 @@ useHead({
   title: () => (route.meta.title as string | undefined) ?? '',
   titleTemplate: (t) => (t ? `${t} | IIoT - SCADA` : 'IIoT - SCADA'),
 })
+const errorBoundaryRef = ref<{ clearError: () => void } | null>(null)
+
+// Сброс ошибки error boundary при переходе между маршрутами.
+watch(
+  () => route.path,
+  () => {
+    errorBoundaryRef.value?.clearError()
+  },
+)
 </script>
 
 <template>
@@ -24,26 +33,13 @@ useHead({
       <div class="h-full py-2 flex gap-2 w-full flex-col">
         <app-toolbar />
         <NuxtLayout>
-          <NuxtErrorBoundary>
+          <NuxtErrorBoundary ref="errorBoundaryRef">
             <NuxtPage />
 
             <template #error="{ error, clearError }">
               <div
                 class="size-full flex flex-col items-center justify-center p-10 text-center gap-6"
               >
-                <!-- Авто-сброс при смене маршрута -->
-                <div
-                  v-if="
-                    watch(
-                      () => route.path,
-                      () => clearError(),
-                      {
-                        immediate: true,
-                        deep: true,
-                      }
-                    )
-                  "
-                />
 
                 <div class="space-y-2">
                   <h1 class="text-4xl font-bold font-mono text-primary">

@@ -30,8 +30,11 @@ export const useAlertsStore = defineStore("Alerts", () => {
     try {
       const tags = await useApi().tags.list();
       setTags(tags ?? []);
-    } catch {
-      // справочник не критичен для работы UI — молча игнорируем сбой загрузки
+    } catch (err) {
+      useAppLoggerStore().log.warning(
+        "alerts-refresh",
+        `Failed to refresh tag thresholds: ${extractErrorMessage(err)}`,
+      );
     }
   }
 

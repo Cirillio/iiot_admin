@@ -108,7 +108,7 @@ const onKeydown = (e: KeyboardEvent) => {
           @blur="commit"
           @keydown="onKeydown"
           @click.stop
-        />
+        >
         <span v-if="unit" class="text-xs text-muted mb-1 shrink-0">{{
           unit
         }}</span>

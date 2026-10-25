@@ -77,9 +77,14 @@ const handleCreate = async (dto: CreateDeviceDto) => {
   try {
     await api.devices.create(dto);
     await refresh();
+    createOpen.value = false;
     notifications.add("Device created", `"${dto.name}" added`, "SUCCESS");
-  } catch {
-    notifications.add("Create failed", "Could not create device", "CRITICAL");
+  } catch (err) {
+    notifications.add(
+      "Create failed",
+      extractErrorMessage(err, "Could not create device"),
+      "CRITICAL",
+    );
   }
 };
 
@@ -99,9 +104,14 @@ const handleEdit = async (dto: UpdateDeviceDto) => {
   try {
     await api.devices.update(id, dto);
     await refresh();
+    editOpen.value = false;
     notifications.add("Device updated", editTarget.value?.name ?? "", "SUCCESS");
-  } catch {
-    notifications.add("Update failed", "Could not update device", "CRITICAL");
+  } catch (err) {
+    notifications.add(
+      "Update failed",
+      extractErrorMessage(err, "Could not update device"),
+      "CRITICAL",
+    );
   }
 };
 
@@ -122,9 +132,14 @@ const handleDelete = async () => {
     const name = deleteTarget.value?.name;
     await api.devices.delete(id);
     await refresh();
-    notifications.add("Device deleted", `"${name}" removed`, "WARNING");
-  } catch {
-    notifications.add("Delete failed", "Could not delete device", "CRITICAL");
+    deleteOpen.value = false;
+    notifications.add("Device deleted", `"${name}" removed`, "INFO");
+  } catch (err) {
+    notifications.add(
+      "Delete failed",
+      extractErrorMessage(err, "Could not delete device"),
+      "CRITICAL",
+    );
   }
 };
 </script>
@@ -180,21 +195,21 @@ const handleDelete = async () => {
           size="sm"
           :variant="filterActive === null ? 'solid' : 'ghost'"
           color="neutral"
-          @click="filterActive = null"
+          @click="() => { filterActive = null }"
         />
         <UButton
           label="Active"
           size="sm"
           :variant="filterActive === true ? 'solid' : 'ghost'"
           :color="filterActive === true ? 'success' : 'neutral'"
-          @click="filterActive = true"
+          @click="() => { filterActive = true }"
         />
         <UButton
           label="Inactive"
           size="sm"
           :variant="filterActive === false ? 'solid' : 'ghost'"
           color="neutral"
-          @click="filterActive = false"
+          @click="() => { filterActive = false }"
         />
       </div>
 
@@ -212,7 +227,7 @@ const handleDelete = async () => {
             size="xs"
             variant="ghost"
             color="neutral"
-            @click="search = ''"
+            @click="() => { search = '' }"
           />
         </template>
       </UInput>
@@ -232,7 +247,7 @@ const handleDelete = async () => {
           :leading-icon="plusIcon"
           label="New device"
           size="sm"
-          @click="createOpen = true"
+          @click="() => { createOpen = true }"
         />
         <UButton
           :icon="reloadIcon"

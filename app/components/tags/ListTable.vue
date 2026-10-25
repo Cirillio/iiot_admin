@@ -37,7 +37,10 @@ const ALL_COLUMNS = [
 const columns = computed(() =>
   props.hiddenColumns?.length
     ? ALL_COLUMNS.filter(
-        (c) => !props.hiddenColumns!.includes((c as any).accessorKey ?? c.id),
+        (c) =>
+          !props.hiddenColumns!.includes(
+            ("accessorKey" in c ? c.accessorKey : c.id) ?? "",
+          ),
       )
     : ALL_COLUMNS,
 );
@@ -84,7 +87,7 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
     await api.tags.update(
       id,
       toUpdateTagDto(current, {
-        portNumber: dto.portNumber,
+        portNumber: dto.portNumber ?? undefined,
         name: dto.name ?? undefined,
         slug: dto.slug ?? undefined,
         dataType: formatBackendEnum(dto.dataType),
@@ -225,7 +228,7 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
     <template #updatedAt-cell="{ row }">
       <span v-if="row.original.updatedAt" class="text-xs text-muted">
         {{ new Date(row.original.updatedAt).toLocaleString().split(",")[0] }}
-        <br />
+        <br>
         {{ new Date(row.original.updatedAt).toLocaleString().split(",")[1] }}
       </span>
       <span v-else class="text-xs text-muted"> — </span>

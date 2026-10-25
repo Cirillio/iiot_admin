@@ -173,7 +173,7 @@ const handleTagUpdate = async (dto: Partial<TagSettings>) => {
     await api.tags.update(
       id,
       toUpdateTagDto(current, {
-        portNumber: dto.portNumber,
+        portNumber: dto.portNumber ?? undefined,
         name: dto.name ?? undefined,
         slug: dto.slug ?? undefined,
         dataType: formatBackendEnum(dto.dataType),
@@ -303,7 +303,7 @@ const formatDate = (s?: string) =>
               label="New tag"
               size="xs"
               variant="soft"
-              @click="tagCreateOpen = true"
+              @click="() => { tagCreateOpen = true }"
             />
             <USeparator orientation="vertical" class="h-4 mx-1" />
             <UButton
@@ -311,14 +311,14 @@ const formatDate = (s?: string) =>
               size="xs"
               variant="ghost"
               :color="viewMode === 'cards' ? 'primary' : 'neutral'"
-              @click="viewMode = 'cards'"
+              @click="() => { viewMode = 'cards' }"
             />
             <UButton
               :icon="viewTableIcon"
               size="xs"
               variant="ghost"
               :color="viewMode === 'table' ? 'primary' : 'neutral'"
-              @click="viewMode = 'table'"
+              @click="() => { viewMode = 'table' }"
             />
             <USeparator orientation="vertical" class="h-4 mx-1" />
             <UButton
@@ -326,7 +326,7 @@ const formatDate = (s?: string) =>
               size="xs"
               variant="ghost"
               color="neutral"
-              @click="tagsModalOpen = true"
+              @click="() => { tagsModalOpen = true }"
             />
           </div>
         </div>
@@ -531,7 +531,7 @@ const formatDate = (s?: string) =>
             variant="outline"
             color="neutral"
             block
-            @click="editOpen = true"
+            @click="() => { editOpen = true }"
           />
           <UButton
             :leading-icon="deleteIcon"
@@ -539,7 +539,7 @@ const formatDate = (s?: string) =>
             variant="ghost"
             color="error"
             block
-            @click="deleteOpen = true"
+            @click="() => { deleteOpen = true }"
           />
         </div>
       </div>

@@ -105,7 +105,8 @@ const stats = computed(() => {
   return { last, min, max, avg: sum / pts.length };
 });
 
-const fmt = (v: number) => {
+const fmt = (v: number | undefined) => {
+  if (v == null || isNaN(v)) return "—";
   const abs = Math.abs(v);
   if (abs !== 0 && (abs >= 1e4 || abs < 1e-2)) return v.toExponential(1);
   return Number(v.toFixed(2)).toString();
@@ -156,7 +157,7 @@ const tagSelectItems = computed(() =>
           size="sm"
           :variant="selectedRange === r ? 'solid' : 'outline'"
           :color="selectedRange === r ? 'primary' : 'neutral'"
-          @click="selectedRange = r"
+          @click="() => { selectedRange = r }"
         />
       </div>
 

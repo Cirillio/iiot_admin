@@ -62,8 +62,12 @@ const handleSave = async () => {
     await api.system.updateConfig({ id: data.value?.id, ...form });
     await refresh();
     notifications.add("Settings saved", "System configuration updated", "SUCCESS");
-  } catch {
-    notifications.add("Save failed", "Could not save configuration", "CRITICAL");
+  } catch (e) {
+    notifications.add(
+      "Save failed",
+      extractErrorMessage(e, "Could not save configuration"),
+      "CRITICAL",
+    );
   } finally {
     saving.value = false;
   }

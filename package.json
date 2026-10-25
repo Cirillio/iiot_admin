@@ -29,6 +29,8 @@
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.2.2",
-    "openapi-typescript": "^7.13.0"
+    "@types/node": "^26.6.5",
+    "openapi-typescript": "^7.13.0",
+    "vue-tsc": "^3.3.13"
   }
 }

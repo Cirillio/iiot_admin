@@ -28,15 +28,31 @@ const systemConfig = useAsyncData(
 const { data, pending, refresh } = useAsyncData(
   "system-status",
   () => api.system.getStatus(),
-  // Запрос автоматически выполнится, когда загрузятся данные systemConfig
-  { immediate: false, watch: [systemConfig.data], server: false },
+  { immediate: true, server: false },
 );
 
-// Передаем computed свойство: при загрузке конфига таймер запустится сам
-const interval = computed(
-  () => systemConfig.data.value?.healthCheckIntervalSec,
+const DEFAULT_HEALTH_CHECK_INTERVAL_SEC = 30;
+
+const intervalSec = computed(() => {
+  const val = systemConfig.data.value?.healthCheckIntervalSec;
+  return typeof val === "number" && val > 0 ? val : DEFAULT_HEALTH_CHECK_INTERVAL_SEC;
+});
+
+const intervalMs = computed(() => intervalSec.value * 1000);
+
+// Реактивный таймер: останавливается при unmount, не накладывает запросы друг на друга.
+const { pause } = useIntervalFn(
+  async () => {
+    if (pending.value) return;
+    await refresh();
+  },
+  intervalMs,
+  { immediate: true, immediateCallback: false },
 );
-useIntervalFn(refresh, interval.value);
+
+onUnmounted(() => {
+  pause();
+});
 
 // --- Helpers ---
 
@@ -122,19 +138,14 @@ function formatLastSync(iso: string | undefined): string {
         />
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-xs text-muted"
-          >auto-refresh
-          {{
-            systemConfig.data.value?.healthCheckIntervalSec || 0 / 1000
-          }}s</span
-        >
+        <span class="text-xs text-muted">auto-refresh {{ intervalSec }}s</span>
         <UButton
           :icon="reloadIcon"
           variant="ghost"
           color="neutral"
           size="sm"
           :loading="pending"
-          @click="refresh()"
+          @click="() => { refresh() }"
         />
       </div>
     </div>

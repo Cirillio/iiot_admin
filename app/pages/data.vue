@@ -126,7 +126,7 @@ const fmtNum = (v: number | null | undefined) =>
           size="sm"
           :variant="selectedRange === r ? 'solid' : 'outline'"
           :color="selectedRange === r ? 'primary' : 'neutral'"
-          @click="selectedRange = r"
+          @click="() => { selectedRange = r }"
         />
       </div>
 

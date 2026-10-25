@@ -60,6 +60,25 @@ watch(
   { immediate: true },
 );
 
+function toSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 50);
+}
+
+// Авто-генерация slug при вводе имени, если slug не редактировался вручную
+watch(
+  () => form.name,
+  (newName, oldName) => {
+    if (!form.slug || (oldName && form.slug === toSlug(oldName))) {
+      form.slug = toSlug(newName);
+    }
+  },
+);
+
 const deviceOptions = computed(() =>
   props.devices.map((d) => ({
     label: d.name ?? `Device ${d.id}`,
@@ -82,21 +101,58 @@ const endiannessOptions = Object.values(MODBUS_ENDIANNESS).map((v) => ({
   value: v,
 }));
 
-const canSubmit = computed(() => form.deviceId != null && form.name.trim() !== "");
+const SLUG_REGEX = /^[a-z0-9_]+$/;
+
+const errors = computed(() => {
+  const errs: Record<string, string> = {};
+  if (!form.name.trim()) {
+    errs.name = "Tag name is required";
+  } else if (form.name.length > 100) {
+    errs.name = "Tag name cannot exceed 100 characters";
+  }
+
+  if (!form.slug.trim()) {
+    errs.slug = "Slug is required";
+  } else if (form.slug.length > 50) {
+    errs.slug = "Slug cannot exceed 50 characters";
+  } else if (!SLUG_REGEX.test(form.slug.trim())) {
+    errs.slug = "Only lowercase letters, numbers, and underscores";
+  }
+
+  if (!form.deviceId || form.deviceId <= 0) {
+    errs.deviceId = "Please select a device";
+  }
+
+  if (form.portNumber < 0 || form.portNumber > 65535) {
+    errs.portNumber = "Port number must be 0–65535";
+  }
+
+  if (form.registerAddress < 0 || form.registerAddress > 65535) {
+    errs.registerAddress = "Register address must be 0–65535";
+  }
+
+  if (form.registerCount < 1 || form.registerCount > 125) {
+    errs.registerCount = "Register count must be 1–125";
+  }
+
+  return errs;
+});
+
+const isValid = computed(() => Object.keys(errors.value).length === 0);
 
 const handleSubmit = () => {
-  if (!canSubmit.value) return;
+  if (!isValid.value) return;
   emits("submit", {
     deviceId: form.deviceId!,
     portNumber: form.portNumber,
-    name: form.name,
-    slug: form.slug,
+    name: form.name.trim(),
+    slug: form.slug.trim(),
     dataType: formatBackendEnum(form.dataType),
     registerAddress: form.registerAddress,
     registerType: formatBackendEnum(form.registerType),
     registerCount: form.registerCount,
     endianness: formatBackendEnum(form.endianness),
-    unit: form.unit,
+    unit: form.unit.trim(),
     inputMin: form.inputMin,
     inputMax: form.inputMax,
     outputMin: form.outputMin,
@@ -105,7 +161,6 @@ const handleSubmit = () => {
     deadbandThreshold: form.deadbandThreshold,
     uiConfig: "",
   });
-  emits("update:open", false);
 };
 </script>
 
@@ -125,7 +180,7 @@ const handleSubmit = () => {
         <USeparator />
 
         <div class="grid grid-cols-2 gap-x-4 gap-y-4">
-          <UFormField label="Device" class="col-span-2">
+          <UFormField label="Device" :error="errors.deviceId" class="col-span-2">
             <USelect
               v-model="form.deviceId"
               :items="deviceOptions"
@@ -135,12 +190,12 @@ const handleSubmit = () => {
             />
           </UFormField>
 
-          <UFormField label="Name">
+          <UFormField label="Name" :error="form.name ? errors.name : undefined">
             <UInput v-model="form.name" placeholder="Tag name" class="w-full" />
           </UFormField>
 
-          <UFormField label="Slug">
-            <UInput v-model="form.slug" placeholder="tag_slug" class="w-full" />
+          <UFormField label="Slug" :error="form.slug ? errors.slug : undefined">
+            <UInput v-model="form.slug" placeholder="tag_slug" class="w-full font-mono" />
           </UFormField>
 
           <UFormField label="Type">
@@ -155,16 +210,18 @@ const handleSubmit = () => {
             <UInput v-model="form.unit" placeholder="Bar, °C, V…" class="w-full" />
           </UFormField>
 
-          <UFormField label="Port №">
-            <UInput v-model="form.portNumber" type="number" class="w-full" />
+          <UFormField label="Port №" :error="errors.portNumber">
+            <UInput v-model="form.portNumber" type="number" :min="0" :max="65535" class="w-full" />
           </UFormField>
 
           <USeparator class="col-span-2" label="Modbus Settings" />
 
-          <UFormField label="Register Addr">
+          <UFormField label="Register Addr" :error="errors.registerAddress">
             <UInput
               v-model="form.registerAddress"
               type="number"
+              :min="0"
+              :max="65535"
               class="w-full"
             />
           </UFormField>
@@ -177,12 +234,12 @@ const handleSubmit = () => {
             />
           </UFormField>
 
-          <UFormField label="Register Count">
+          <UFormField label="Register Count" :error="errors.registerCount">
             <UInput
               v-model="form.registerCount"
               type="number"
-              min="1"
-              max="2"
+              :min="1"
+              :max="125"
               class="w-full"
             />
           </UFormField>
@@ -239,7 +296,7 @@ const handleSubmit = () => {
           <UButton
             label="Create"
             :leading-icon="saveIcon"
-            :disabled="!canSubmit"
+            :disabled="!isValid"
             @click="handleSubmit"
           />
         </div>

@@ -9,7 +9,7 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
 
   const $http = $fetch.create({
-    baseURL: config.public.apiBase,
+    baseURL: (config.public.apiBase || "").replace(/\/+$/, ""),
   });
 
   return {

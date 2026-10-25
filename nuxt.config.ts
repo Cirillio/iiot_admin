@@ -13,12 +13,10 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
-  // Убираем devtools пока не заведемся
   devtools: {
-    enabled: true,
-
+    enabled: process.env.NODE_ENV !== 'production',
     timeline: {
-      enabled: true,
+      enabled: process.env.NODE_ENV !== 'production',
     },
   },
 
@@ -34,7 +32,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:8080',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
+      appVersion: '1.4.2',
+      appEnv: process.env.NODE_ENV === 'production' ? 'Production' : 'Development',
     },
   },
 

@@ -24,6 +24,7 @@ import {
   STATUS_COLOR,
   thresholdLines,
 } from "~/utils/tagStatus";
+import { extractErrorMessage } from "~/utils/error";
 
 definePageMeta({
   title: "Tag",
@@ -269,7 +270,7 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
     await api.tags.update(
       current.tagId,
       toUpdateTagDto(current, {
-        portNumber: dto.portNumber,
+        portNumber: dto.portNumber ?? undefined,
         name: dto.name ?? undefined,
         slug: dto.slug ?? undefined,
         dataType: formatBackendEnum(dto.dataType),
@@ -286,10 +287,12 @@ const handleEditSubmit = async (dto: Partial<TagSettings>) => {
         deadbandThreshold: dto.deadbandThreshold,
       }),
     );
+    editOpen.value = false;
     notifications.add("Tag updated", `"${current.name}" saved`, "SUCCESS");
     await refresh();
-  } catch {
-    notifications.add("Update failed", `Could not update "${current.name}"`, "CRITICAL");
+  } catch (err: unknown) {
+    const msg = extractErrorMessage(err);
+    notifications.add("Update failed", msg || `Could not update "${current.name}"`, "CRITICAL");
   }
 };
 
@@ -384,14 +387,14 @@ const tableColumns = [
           variant="ghost"
           color="neutral"
           size="sm"
-          @click="appearanceOpen = true"
+          @click="() => { appearanceOpen = true }"
         />
         <UButton
           :icon="editIcon"
           variant="ghost"
           color="neutral"
           size="sm"
-          @click="editOpen = true"
+          @click="() => { editOpen = true }"
         />
         <UButton
           :icon="reloadIcon"
@@ -430,7 +433,7 @@ const tableColumns = [
               size="xs"
               :variant="viewMode === 'chart' ? 'solid' : 'ghost'"
               :color="viewMode === 'chart' ? 'primary' : 'neutral'"
-              @click="viewMode = 'chart'"
+              @click="() => { viewMode = 'chart' }"
             />
             <UButton
               label="Таблица"
@@ -438,7 +441,7 @@ const tableColumns = [
               size="xs"
               :variant="viewMode === 'table' ? 'solid' : 'ghost'"
               :color="viewMode === 'table' ? 'primary' : 'neutral'"
-              @click="viewMode = 'table'"
+              @click="() => { viewMode = 'table' }"
             />
           </div>
         </div>

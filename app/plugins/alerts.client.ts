@@ -10,8 +10,11 @@ export default defineNuxtPlugin((nuxtApp) => {
     try {
       const latest = await useApi().metrics.getLatest();
       realtime.seed(latest ?? []);
-    } catch {
-      // снимок не критичен — при сбое значения подтянутся live-метриками
+    } catch (err) {
+      useAppLoggerStore().log.warning(
+        "realtime-seed",
+        `Failed to fetch initial metrics snapshot: ${extractErrorMessage(err)}`,
+      );
     }
   });
 });

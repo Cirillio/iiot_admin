@@ -60,7 +60,7 @@ const notifications = useNotificationsStore();
                 size="xs"
                 variant="ghost"
                 :color="notifications.muted ? 'warning' : 'neutral'"
-                @click="notifications.muted = !notifications.muted"
+                @click="() => { notifications.muted = !notifications.muted }"
               />
             </CustomTooltip>
             <UButton

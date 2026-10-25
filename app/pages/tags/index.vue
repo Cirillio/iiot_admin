@@ -2,6 +2,7 @@
 import { closeIcon, plusIcon, reloadIcon, searchIcon } from "~/core/icons-map";
 import type { CreateTagDto, TagDataType } from "~/types/models";
 import { TAG_DATA_TYPE, TAG_TYPE_COLOR } from "~/types/models";
+import { extractErrorMessage } from "~/utils/error";
 
 definePageMeta({
   title: "Tags",
@@ -78,8 +79,9 @@ const handleDelete = async (id: number | undefined) => {
     await api.tags.delete(id);
     notifications.add("Tag deleted", `"${name}" removed`, "WARNING");
     await refresh();
-  } catch {
-    notifications.add("Delete failed", `Could not delete "${name}"`, "CRITICAL");
+  } catch (err: unknown) {
+    const msg = extractErrorMessage(err);
+    notifications.add("Delete failed", msg || `Could not delete "${name}"`, "CRITICAL");
   }
 };
 
@@ -90,10 +92,12 @@ const createOpen = ref(false);
 const handleCreate = async (dto: CreateTagDto) => {
   try {
     await api.tags.create(dto);
+    createOpen.value = false;
     await refresh();
     notifications.add("Tag created", `"${dto.name}" added`, "SUCCESS");
-  } catch {
-    notifications.add("Create failed", "Could not create tag", "CRITICAL");
+  } catch (err: unknown) {
+    const msg = extractErrorMessage(err);
+    notifications.add("Create failed", msg || "Could not create tag", "CRITICAL");
   }
 };
 </script>
@@ -118,7 +122,7 @@ const handleCreate = async (dto: CreateTagDto) => {
             size="xs"
             variant="ghost"
             color="neutral"
-            @click="search = ''"
+            @click="() => { search = '' }"
           />
         </template>
       </UInput>
@@ -156,7 +160,7 @@ const handleCreate = async (dto: CreateTagDto) => {
           :leading-icon="plusIcon"
           label="New tag"
           size="sm"
-          @click="createOpen = true"
+          @click="() => { createOpen = true }"
         />
         <UButton
           :icon="reloadIcon"

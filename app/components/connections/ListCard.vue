@@ -7,11 +7,10 @@ import {
 } from "~/core/icons-map";
 import type { ModbusConnection } from "~/types/models";
 
-const props = defineProps<{ item: ModbusConnection }>();
+defineProps<{ item: ModbusConnection }>();
 
 const emit = defineEmits<{
-  (e: "edit", item: ModbusConnection): void;
-  (e: "delete", item: ModbusConnection): void;
+  (e: "edit" | "delete", item: ModbusConnection): void;
 }>();
 </script>
 

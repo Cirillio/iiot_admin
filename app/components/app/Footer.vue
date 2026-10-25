@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { branchIcon, githubIcon, menuIcon } from "~/core/icons-map";
+import { branchIcon, menuIcon } from "~/core/icons-map";
 
 const { isFluid } = useLayout();
 const mc_modal_open = ref(false);
@@ -23,8 +23,11 @@ watch(autoconnect, (on) => {
   if (!commands.isConnected) control.connect();
 });
 
-const version = "v1.4.2-build.89";
-const env = "Development";
+const config = useRuntimeConfig();
+const version = `v${(config.public.appVersion as string) || "1.4.2"}`;
+const env =
+  (config.public.appEnv as string) ||
+  (import.meta.dev ? "Development" : "Production");
 const currentYear = new Date().getFullYear();
 </script>
 
@@ -99,7 +102,7 @@ const currentYear = new Date().getFullYear();
                   color="neutral"
                   size="xl"
                   label="Close"
-                  @click="mc_modal_open = false"
+                  @click="() => { mc_modal_open = false }"
                 />
               </div>
             </div>
@@ -128,14 +131,6 @@ const currentYear = new Date().getFullYear();
 
         <div class="flex items-center gap-2 text-xs font-medium">
           <span>&copy; {{ currentYear }} IIoT Admin</span>
-          <a
-            title="GitHub Repository"
-            href="https://github.com/Cirillio/iiot_admin"
-            target="_blank"
-            class="p-1.5 hover:bg-primary/75 transition hover:text-white items-center justify-center bg-muted/50 rounded-full flex"
-          >
-            <UIcon :name="githubIcon" class="size-5" />
-          </a>
         </div>
       </div>
     </footer>

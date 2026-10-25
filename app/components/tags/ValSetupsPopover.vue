@@ -48,6 +48,7 @@
 
 <script lang="ts" setup>
 import { copyCheckIcon, copyIcon, infoIcon } from "~/core/icons-map";
+import { extractErrorMessage } from "~/utils/error";
 
 type TagValueSetup = {
   inputMin?: number;
@@ -58,14 +59,27 @@ type TagValueSetup = {
 };
 
 const popoverOpen = ref(false);
+const setupsIsCopied = ref(false);
 
 const props = defineProps<{ item: TagValueSetup }>();
 
-const setupsIsCopied = ref(false);
+const notifications = useNotificationsStore();
 
 const handleCopyTagValueSetups = async () => {
-  await navigator.clipboard.writeText(JSON.stringify(props.item));
-  setupsIsCopied.value = true;
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("Clipboard API not available in this context");
+    }
+    await navigator.clipboard.writeText(JSON.stringify(props.item, null, 2));
+    setupsIsCopied.value = true;
+    notifications.add("Copied", "Tag value setups copied to clipboard", "INFO");
+  } catch (err) {
+    notifications.add(
+      "Copy failed",
+      extractErrorMessage(err, "Failed to copy to clipboard"),
+      "WARNING",
+    );
+  }
 };
 
 const popoverCopyWatch = watch(

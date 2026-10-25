@@ -43,9 +43,14 @@ const handleCreate = async (dto: CreateConnectionDto) => {
   try {
     await api.connections.create(dto);
     await refresh();
+    createOpen.value = false;
     notifications.add("Connection created", `${dto.ipAddress} added`, "SUCCESS");
-  } catch {
-    notifications.add("Create failed", "Could not create connection", "CRITICAL");
+  } catch (err) {
+    notifications.add(
+      "Create failed",
+      extractErrorMessage(err, "Could not create connection"),
+      "CRITICAL",
+    );
   }
 };
 
@@ -65,9 +70,14 @@ const handleEdit = async (dto: UpdateConnectionDto) => {
   try {
     await api.connections.update(id, dto);
     await refresh();
+    editOpen.value = false;
     notifications.add("Connection updated", editTarget.value?.ipAddress ?? "", "SUCCESS");
-  } catch {
-    notifications.add("Update failed", "Could not update connection", "CRITICAL");
+  } catch (err) {
+    notifications.add(
+      "Update failed",
+      extractErrorMessage(err, "Could not update connection"),
+      "CRITICAL",
+    );
   }
 };
 
@@ -88,9 +98,14 @@ const handleDelete = async () => {
     const ip = deleteTarget.value?.ipAddress;
     await api.connections.delete(id);
     await refresh();
-    notifications.add("Connection deleted", `${ip} removed`, "WARNING");
-  } catch {
-    notifications.add("Delete failed", "Could not delete connection", "CRITICAL");
+    deleteOpen.value = false;
+    notifications.add("Connection deleted", `${ip} removed`, "INFO");
+  } catch (err) {
+    notifications.add(
+      "Delete failed",
+      extractErrorMessage(err, "Could not delete connection"),
+      "CRITICAL",
+    );
   }
 };
 </script>
@@ -136,7 +151,7 @@ const handleDelete = async () => {
             size="xs"
             variant="ghost"
             color="neutral"
-            @click="search = ''"
+            @click="() => { search = '' }"
           />
         </template>
       </UInput>
@@ -146,7 +161,7 @@ const handleDelete = async () => {
           :leading-icon="plusIcon"
           label="New connection"
           size="sm"
-          @click="createOpen = true"
+          @click="() => { createOpen = true }"
         />
         <UButton
           :icon="reloadIcon"
